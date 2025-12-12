@@ -57,11 +57,13 @@ const styles = StyleSheet.create({
 
   // --- CONTENT STYLING ---
   title: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#7D7D7D", // Dark gray text
-    marginBottom: 10,
-  },
+  fontSize: 18,
+  fontWeight: '600',
+  color: '#7D7D7D',
+  marginBottom: 10,
+  fontFamily: 'SFCompactRounded-Bold', // <-- add this
+},
+
   iconWrapper: {
     flex: 1, // Allows the icon to take up the middle space
     justifyContent: "center",

@@ -18,19 +18,20 @@ const styles = StyleSheet.create({
     marginBottom: 50, // Space between header and role cards
     paddingTop: 20,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#84D8B9', // Light green color from the image
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#333333', // Dark text color
-    textAlign: 'center',
-  },
+ title: {
+  fontSize: 28,
+  color: '#B0E5DD',
+  textAlign: 'center',
+  marginBottom: 8,
+  fontFamily: 'SFCompactRounded-Bold', // <-- add this
+},
+subtitle: {
+  fontSize: 15,
+  color: '#AFAFAF',
+  textAlign: 'center',
+  fontFamily: 'SFCompactRounded-Semibold', // <-- add this
+},
+
 });
 
 export default HeaderComponent;

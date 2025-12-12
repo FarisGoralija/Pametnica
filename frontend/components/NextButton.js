@@ -3,7 +3,7 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 
-const NextButton = ({ title = "DALJE", onPress, isDisabled = false }) => {
+const NextButton = ({ title = "Dalje", onPress, isDisabled = false }) => {
   return (
     <TouchableOpacity
       style={[
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
   button: {
     width: "100%",
     maxWidth: 300, // Limit width for better appearance on tablets
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderRadius: 15,
     backgroundColor: "#7CCDD4", // Primary light green color (matching your header)
     alignItems: "center",
@@ -39,9 +39,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#FFFFFF", // White text
-    fontSize: 18,
+    fontSize: 26,
     fontWeight: "700",
-    textTransform: "uppercase",
   },
 });
 
