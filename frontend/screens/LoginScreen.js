@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, StatusBar, Text, TouchableOpacity } from 'react-native';
+import { 
+  View, 
+  StyleSheet, 
+  StatusBar, 
+  Text, 
+  TouchableOpacity, 
+  KeyboardAvoidingView, 
+  Platform,
+  ScrollView
+} from 'react-native';
 import CustomInput from '../components/CustomInput';
 import NextButton from '../components/NextButton';
 import Logo from '../components/Logo'; 
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, route }) => {
+  const role = route?.params?.role || 'parent'; // Get role from navigation, default 'parent'
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -27,55 +38,72 @@ const LoginScreen = ({ navigation }) => {
   const isButtonDisabled = email.length === 0 || password.length === 0;
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      
-      <Logo />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          
+          <Logo />
 
-      <View style={styles.contentContainer}>
-        <CustomInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          iconName="email-outline" 
-          keyboardType="email-address"
-        />
-
-        <CustomInput
-          placeholder="Šifra"
-          value={password}
-          onChangeText={setPassword}
-          iconName="lock-outline" 
-          secureTextEntry={true}
-        />
-        
-        <TouchableOpacity 
-          onPress={handleForgotPassword} 
-          style={styles.forgotPasswordButton}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.forgotPasswordText}>
-            Zaboravljena šifra?
+          {/* Role-based subtitle */}
+          <Text style={styles.roleSubtitle}>
+            {role === 'parent' ? 'Račun za roditelje' : 'Račun za djecu'}
           </Text>
-        </TouchableOpacity>
-      </View>
 
-      <View style={styles.buttonWrapper}>
-        <NextButton 
-          title="Prijavi se"
-          onPress={handleLogin}
-          isDisabled={isButtonDisabled} 
-        />
-        
-        {/* ADDED REGISTRATION LINK DIRECTLY BELOW THE BUTTON */}
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Nemas račun? </Text>
-          <TouchableOpacity onPress={handleRegister} activeOpacity={0.7}>
-            <Text style={styles.registerLink}>Registruj se odmah!</Text>
-          </TouchableOpacity>
+          <View style={styles.contentContainer}>
+            <CustomInput
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              iconName="email-outline" 
+              keyboardType="email-address"
+            />
+
+            <CustomInput
+              placeholder="Šifra"
+              value={password}
+              onChangeText={setPassword}
+              iconName="lock-outline" 
+              secureTextEntry={true}
+            />
+            
+            <TouchableOpacity 
+              onPress={handleForgotPassword} 
+              style={styles.forgotPasswordButton}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.forgotPasswordText}>
+                Zaboravljena šifra?
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.buttonWrapper}>
+            <NextButton 
+              title="Prijavi se"
+              onPress={handleLogin}
+              isDisabled={isButtonDisabled} 
+            />
+            
+            {/* Show registration only for parent role */}
+            {role === 'parent' && (
+              <View style={styles.registerContainer}>
+                <Text style={styles.registerText}>Nemas račun? </Text>
+                <TouchableOpacity onPress={handleRegister} activeOpacity={0.7}>
+                  <Text style={styles.registerLink}>Registruj se odmah!</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -86,6 +114,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 180,
+  },
+  roleSubtitle: {
+    fontSize: 18,
+    fontFamily:  'SFCompactRounded-Semibold',
+    color: '#7D7D7D',
+    marginTop:-30,
+    marginBottom: 70,
+    textAlign: 'center',
   },
   contentContainer: {
     alignItems: 'center',
@@ -110,12 +146,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 70, 
   },
-  
-  // NEW STYLES FOR REGISTRATION LINK
   registerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 250, // Space between button and link
+    marginTop: 20,
   },
   registerText: {
     fontFamily: 'sf-rounded-regular',

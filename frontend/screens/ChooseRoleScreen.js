@@ -12,8 +12,8 @@ const ChooseRoleScreen = ({ navigation }) => {
   };
   
   const handleNextPress = () => {
-    // ✅ Navigate to LoginScreen when button is pressed
-    navigation.navigate('LoginScreen');
+    // 💡 KEY CHANGE: Pass the selectedRole as a parameter named 'role'
+    navigation.navigate('LoginScreen', { role: selectedRole });
   };
 
   return (
@@ -49,13 +49,14 @@ const ChooseRoleScreen = ({ navigation }) => {
           isDisabled={!selectedRole} 
         />
       </View>
+      
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1, 
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     padding: 20,
