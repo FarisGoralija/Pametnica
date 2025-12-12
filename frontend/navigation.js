@@ -1,0 +1,21 @@
+// Navigation.js
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import ChooseRoleScreen from "./screens/ChooseRoleScreen";
+
+const Stack = createNativeStackNavigator();
+
+export default function Navigation() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="ChooseRole"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="ChooseRole" component={ChooseRoleScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
