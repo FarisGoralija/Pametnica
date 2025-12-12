@@ -1,26 +1,19 @@
-// screens/ChooseRoleScreen.js (KEY PARTS UPDATED)
-
-// ... (Your imports for RoleCard and HeaderComponent)
 import React, { useState } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import RoleCard from '../components/RoleCard';
 import HeaderComponent from '../components/HeaderNoBack'; 
-// 👇 IMPORT THE NEW BUTTON
 import NextButton from '../components/NextButton'; 
-// ... (Your MaterialCommunityIcons import and Component definitions)
 
-
-const ChooseRoleScreen = () => {
+const ChooseRoleScreen = ({ navigation }) => {
   const [selectedRole, setSelectedRole] = useState('parent'); 
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
   };
   
-  // New function to handle button press
   const handleNextPress = () => {
-    console.log(`Navigating to next screen with role: ${selectedRole}`);
-    // navigation.navigate('NextScreen', { selectedRole });
+    // ✅ Navigate to LoginScreen when button is pressed
+    navigation.navigate('LoginScreen');
   };
 
   return (
@@ -33,7 +26,6 @@ const ChooseRoleScreen = () => {
       />
 
       <View style={styles.cardContainer}>
-        {/* ... Role Cards (Roditelj and Dijete) ... */}
         <RoleCard
           title="Roditelj"
           iconName="account-group" 
@@ -51,22 +43,19 @@ const ChooseRoleScreen = () => {
         />
       </View>
       
-      {/* 👇 ADD THE NEXT BUTTON HERE */}
       <View style={styles.buttonWrapper}>
         <NextButton 
           onPress={handleNextPress}
-          // The button is active because a role is always selected by default
           isDisabled={!selectedRole} 
         />
       </View>
-      
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Crucial for layout
+    flex: 1,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     padding: 20,
@@ -77,19 +66,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center',
     width: '100%',
-    marginTop: 100, // Keeps the cards lowered
-    // Use 'flex: 1' on cardContainer or use a wrapper with absolute positioning 
-    // if you want the button fixed at the bottom.
+    marginTop: 100,
   },
   buttonWrapper: {
-    // This pushes the button to the bottom using flex layout
     flex: 1, 
     justifyContent: 'flex-end', 
     width: '100%',
     alignItems: 'center',
-    marginBottom: 280, // Space from the bottom edge
+    marginBottom: 280,
   }
 });
 
-// ... (Export)
 export default ChooseRoleScreen;

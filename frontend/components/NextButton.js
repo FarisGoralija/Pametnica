@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonDisabled: {
-    backgroundColor: "#BCE8D8", // Lighter shade for disabled state
+    backgroundColor: "#C0EAF0", // Lighter shade for disabled state
   },
   buttonText: {
     color: "#FFFFFF", // White text
