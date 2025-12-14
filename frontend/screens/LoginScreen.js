@@ -39,9 +39,8 @@ const LoginScreen = ({ navigation, route }) => {
     // ✅ LOGIN LOGIC ONLY (NO NAVIGATION)
     console.log("Login successful");
   };
-
   const handleForgotPassword = () => {
-    console.log("Forgot password pressed");
+    navigation.navigate("ForgotPasswordScreen");
   };
 
   const handleRegister = () => {
