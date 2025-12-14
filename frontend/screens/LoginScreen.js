@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     padding: 20,
-    paddingTop: 180,
+    paddingTop: Platform.OS === "android" ? 120 : 180,
   },
 
   roleSubtitle: {
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     fontFamily: "SFCompactRounded-Semibold",
     color: "#7D7D7D",
     marginTop: -30,
-    marginBottom: 70,
+    marginBottom: Platform.OS === "android" ? 50 : 70,
     textAlign: "center",
   },
 
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 120,
+    top: Platform.OS === "android" ? 90 : 120,
     left: 20,
     width: 37,
     height: 47,

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState } from "react";
+import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const CustomInput = ({
   placeholder,
@@ -8,25 +8,20 @@ const CustomInput = ({
   onChangeText,
   iconName,
   secureTextEntry = false,
-  keyboardType = 'default',
+  keyboardType = "default",
   error = false,
-  isPassword = false,        // 👈 NEW
+  isPassword = false,
 }) => {
   const [isSecure, setIsSecure] = useState(secureTextEntry);
 
   return (
-    <View
-      style={[
-        styles.container,
-        error && styles.errorContainer,
-      ]}
-    >
+    <View style={[styles.container, error && styles.errorContainer]}>
       {/* LEFT ICON */}
       {iconName && (
         <MaterialCommunityIcons
           name={iconName}
           size={24}
-          color={error ? '#E53935' : styles.placeholder.color}
+          color={error ? "#E53935" : "#AFAFAF"}
           style={styles.icon}
         />
       )}
@@ -39,19 +34,16 @@ const CustomInput = ({
         onChangeText={onChangeText}
         secureTextEntry={isSecure}
         keyboardType={keyboardType}
-        placeholderTextColor={styles.placeholder.color}
+        placeholderTextColor="#AFAFAF"
       />
 
-      {/* EYE ICON (RIGHT SIDE) */}
+      {/* EYE ICON */}
       {isPassword && (
-        <TouchableOpacity
-          onPress={() => setIsSecure(!isSecure)}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={() => setIsSecure(!isSecure)}>
           <MaterialCommunityIcons
-            name={isSecure ? 'eye-off-outline' : 'eye-outline'}
+            name={isSecure ? "eye-off-outline" : "eye-outline"}
             size={22}
-            color={error ? '#E53935' : '#7D7D7D'}
+            color={error ? "#E53935" : "#7D7D7D"}
           />
         </TouchableOpacity>
       )}
@@ -61,11 +53,11 @@ const CustomInput = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     width: 300,
-    height: 44,
-    backgroundColor: '#C0EAF0',
+    height: 44, // 👈 this controls vertical center
+    backgroundColor: "#C0EAF0",
     borderRadius: 15,
     paddingHorizontal: 15,
     marginVertical: 10,
@@ -73,7 +65,7 @@ const styles = StyleSheet.create({
 
   errorContainer: {
     borderWidth: 1.5,
-    borderColor: '#E53935',
+    borderColor: "#E53935",
   },
 
   icon: {
@@ -82,14 +74,14 @@ const styles = StyleSheet.create({
 
   input: {
     flex: 1,
-    height: '100%',
     fontSize: 16,
-    fontFamily: 'SFCompactRounded-Bold',
-    color: '#7D7D7D',
-  },
+    fontFamily: "SFCompactRounded-Bold",
+    color: "#7D7D7D",
 
-  placeholder: {
-    color: '#AFAFAF',
+    // ✅ ANDROID FIXES
+    includeFontPadding: false, // 🔥 removes Android ghost padding
+    textAlignVertical: "center", // keeps center
+    paddingVertical: 0, // remove extra vertical padding
   },
 });
 
