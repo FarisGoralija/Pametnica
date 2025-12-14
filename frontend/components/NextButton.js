@@ -8,11 +8,11 @@ const NextButton = ({ title = "Dalje", onPress, isDisabled = false }) => {
     <TouchableOpacity
       style={[
         styles.button,
-        isDisabled && styles.buttonDisabled, // Apply disabled style if needed
+        isDisabled && styles.buttonDisabled,
       ]}
       onPress={onPress}
       disabled={isDisabled}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
     >
       <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
@@ -21,26 +21,32 @@ const NextButton = ({ title = "Dalje", onPress, isDisabled = false }) => {
 
 const styles = StyleSheet.create({
   button: {
-    width: "100%",
-    maxWidth: 300, // Limit width for better appearance on tablets
-    paddingVertical: 8,
-    borderRadius: 15,
-    backgroundColor: "#7CCDD4", // Primary light green color (matching your header)
+    width: 300,               // ✅ FIXED WIDTH (matches inputs)
+    height: 52,               // ✅ FIXED HEIGHT (Android-safe)
+    borderRadius: 16,
+    backgroundColor: "#7CCDD4",
     alignItems: "center",
     justifyContent: "center",
+
+    // ✅ SHADOW (iOS)
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+
+    // ✅ SHADOW (Android)
     elevation: 5,
   },
+
   buttonDisabled: {
-    backgroundColor: "#C0EAF0", // Lighter shade for disabled state
+    backgroundColor: "#C0EAF0",
   },
+
   buttonText: {
-    color: "#FFFFFF", // White text
-    fontSize: 26,
-    fontWeight: "700",
+    color: "#FFFFFF",
+    fontSize: 22,             // ✅ slightly smaller for vertical centering
+    fontFamily: "SFCompactRounded-Bold",
+    textAlignVertical: "center",
   },
 });
 
