@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput } from "react-native";
+import { View, Text, StyleSheet, TextInput,Platform } from "react-native";
 import HeaderWithBack from "../components/HeaderWithBack";
 import NextButton from "../components/NextButton";
 
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
 
   headerWrapper: {
-    marginTop: 80,
+    marginTop: Platform.OS === "android" ? 20 : 80,
   },
 
   codeContainer: {
