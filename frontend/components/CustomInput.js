@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const CustomInput = ({
@@ -9,26 +9,52 @@ const CustomInput = ({
   iconName,
   secureTextEntry = false,
   keyboardType = 'default',
+  error = false,
+  isPassword = false,        // 👈 NEW
 }) => {
+  const [isSecure, setIsSecure] = useState(secureTextEntry);
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        error && styles.errorContainer,
+      ]}
+    >
+      {/* LEFT ICON */}
       {iconName && (
-        <MaterialCommunityIcons 
-          name={iconName} 
-          size={24} 
-          color={styles.placeholder.color} 
-          style={styles.icon} 
+        <MaterialCommunityIcons
+          name={iconName}
+          size={24}
+          color={error ? '#E53935' : styles.placeholder.color}
+          style={styles.icon}
         />
       )}
+
+      {/* INPUT */}
       <TextInput
         style={styles.input}
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
-        secureTextEntry={secureTextEntry}
+        secureTextEntry={isSecure}
         keyboardType={keyboardType}
         placeholderTextColor={styles.placeholder.color}
       />
+
+      {/* EYE ICON (RIGHT SIDE) */}
+      {isPassword && (
+        <TouchableOpacity
+          onPress={() => setIsSecure(!isSecure)}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons
+            name={isSecure ? 'eye-off-outline' : 'eye-outline'}
+            size={22}
+            color={error ? '#E53935' : '#7D7D7D'}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -44,18 +70,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginVertical: 10,
   },
+
+  errorContainer: {
+    borderWidth: 1.5,
+    borderColor: '#E53935',
+  },
+
   icon: {
     marginRight: 10,
   },
+
   input: {
     flex: 1,
     height: '100%',
     fontSize: 16,
     fontFamily: 'SFCompactRounded-Bold',
-    color: '#7D7D7D', 
+    color: '#7D7D7D',
   },
+
   placeholder: {
-    // This style object is used only to define the colors for the icon and placeholderTextColor prop
     color: '#AFAFAF',
   },
 });

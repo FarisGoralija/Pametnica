@@ -1,59 +1,83 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  StatusBar, 
-  Text, 
-  TouchableOpacity, 
-  KeyboardAvoidingView, 
+import React, { useState } from "react";
+import {
+  View,
+  StyleSheet,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  KeyboardAvoidingView,
   Platform,
-  ScrollView
-} from 'react-native';
-import CustomInput from '../components/CustomInput';
-import NextButton from '../components/NextButton';
-import Logo from '../components/Logo'; 
+  ScrollView,
+} from "react-native";
+
+import CustomInput from "../components/CustomInput";
+import NextButton from "../components/NextButton";
+import Logo from "../components/Logo";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const LoginScreen = ({ navigation, route }) => {
-  const role = route?.params?.role || 'parent'; // Get role from navigation, default 'parent'
+  const role = route?.params?.role || "parent";
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // ✅ EMAIL REGEX
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email);
 
   const handleLogin = () => {
-    if (email.length > 0 && password.length > 0) {
-      console.log(`Logging in with Email: ${email}`);
-    } else {
-      console.log("Please enter both email and password.");
+    if (!isEmailValid) {
+      console.log("Email format is not valid");
+      return;
     }
+
+    if (password.length === 0) {
+      console.log("Please enter password");
+      return;
+    }
+
+    // ✅ LOGIN LOGIC ONLY (NO NAVIGATION)
+    console.log("Login successful");
   };
 
   const handleForgotPassword = () => {
-    console.log("Forgot password link pressed.");
+    console.log("Forgot password pressed");
   };
 
   const handleRegister = () => {
-    console.log("Register link pressed.");
+    navigation.navigate("RegistrationScreen", { role });
   };
 
-  const isButtonDisabled = email.length === 0 || password.length === 0;
+  const isButtonDisabled = !isEmailValid || password.length === 0;
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.container}>
           <StatusBar barStyle="dark-content" />
-          
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name="chevron-left"
+              size={50}
+              color="#B0E5DD"
+            />
+          </TouchableOpacity>
+
           <Logo />
 
-          {/* Role-based subtitle */}
+          {/* ROLE SUBTITLE */}
           <Text style={styles.roleSubtitle}>
-            {role === 'parent' ? 'Račun za roditelje' : 'Račun za djecu'}
+            {role === "parent" ? "Račun za roditelje" : "Račun za djecu"}
           </Text>
 
           <View style={styles.contentContainer}>
@@ -61,7 +85,7 @@ const LoginScreen = ({ navigation, route }) => {
               placeholder="Email"
               value={email}
               onChangeText={setEmail}
-              iconName="email-outline" 
+              iconName="email-outline"
               keyboardType="email-address"
             />
 
@@ -69,32 +93,30 @@ const LoginScreen = ({ navigation, route }) => {
               placeholder="Šifra"
               value={password}
               onChangeText={setPassword}
-              iconName="lock-outline" 
-              secureTextEntry={true}
+              iconName="lock-outline"
+              secureTextEntry
             />
-            
-            <TouchableOpacity 
-              onPress={handleForgotPassword} 
+
+            <TouchableOpacity
+              onPress={handleForgotPassword}
               style={styles.forgotPasswordButton}
               activeOpacity={0.7}
             >
-              <Text style={styles.forgotPasswordText}>
-                Zaboravljena šifra?
-              </Text>
+              <Text style={styles.forgotPasswordText}>Zaboravljena šifra?</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.buttonWrapper}>
-            <NextButton 
+            <NextButton
               title="Prijavi se"
               onPress={handleLogin}
-              isDisabled={isButtonDisabled} 
+              isDisabled={isButtonDisabled}
             />
-            
-            {/* Show registration only for parent role */}
-            {role === 'parent' && (
+
+            {/* REGISTER ONLY FOR PARENT */}
+            {role === "parent" && (
               <View style={styles.registerContainer}>
-                <Text style={styles.registerText}>Nemas račun? </Text>
+                <Text style={styles.registerText}>Nemaš račun? </Text>
                 <TouchableOpacity onPress={handleRegister} activeOpacity={0.7}>
                   <Text style={styles.registerLink}>Registruj se odmah!</Text>
                 </TouchableOpacity>
@@ -110,57 +132,73 @@ const LoginScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
     padding: 20,
     paddingTop: 180,
   },
+
   roleSubtitle: {
     fontSize: 18,
-    fontFamily:  'SFCompactRounded-Semibold',
-    color: '#7D7D7D',
-    marginTop:-30,
+    fontFamily: "SFCompactRounded-Semibold",
+    color: "#7D7D7D",
+    marginTop: -30,
     marginBottom: 70,
-    textAlign: 'center',
+    textAlign: "center",
   },
+
   contentContainer: {
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 0, 
+    alignItems: "center",
+    width: "100%",
   },
+
   forgotPasswordButton: {
     width: 300,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     paddingTop: 10,
     paddingBottom: 20,
   },
+
   forgotPasswordText: {
     fontSize: 15,
-    fontFamily: 'sf-rounded-regular',
-    color: '#3797EF',
+    fontFamily: "sf-rounded-regular",
+    color: "#3797EF",
   },
+  backButton: {
+    position: "absolute",
+    top: 120,
+    left: 20,
+    width: 37,
+    height: 47,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   buttonWrapper: {
-    flex: 1, 
-    justifyContent: 'flex-end', 
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 70, 
+    flex: 1,
+    justifyContent: "flex-end",
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 70,
   },
+
   registerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 20,
   },
+
   registerText: {
-    fontFamily: 'sf-rounded-regular',
+    fontFamily: "sf-rounded-regular",
     fontSize: 16,
-    color: '#7D7D7D', 
+    color: "#7D7D7D",
   },
+
   registerLink: {
-    fontFamily: 'sf-rounded-regular',
+    fontFamily: "sf-rounded-regular",
     fontSize: 16,
-    color: '#3797EF',
-  }
+    color: "#3797EF",
+  },
 });
 
 export default LoginScreen;
