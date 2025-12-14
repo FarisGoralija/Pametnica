@@ -4,7 +4,7 @@ import HeaderWithBack from "../components/HeaderWithBack";
 import CustomInput from "../components/CustomInput";
 import NextButton from "../components/NextButton";
 
-const ForgotPasswordScreen = () => {
+const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
@@ -20,13 +20,10 @@ const ForgotPasswordScreen = () => {
   const handleSubmit = () => {
     setSubmitted(true);
 
-    if (!isEmailValid) {
-      // ❌ show error
-      return;
-    }
+    if (!isEmailValid) return;
 
-    // ✅ ALL GOOD
-    console.log("Reset password email sent");
+    // ✅ NAVIGATE TO CODE SCREEN
+    navigation.navigate("CodeVerificationScreen", { email });
   };
 
   return (
@@ -35,9 +32,7 @@ const ForgotPasswordScreen = () => {
       <View style={styles.headerWrapper}>
         <HeaderWithBack
           title="Zaboravljena šifra"
-          subtitle={
-            "Unesite svoju e-mail adresu\nza resetovanje šifre."
-          }
+          subtitle={"Unesite svoju e-mail adresu\nza resetovanje šifre."}
         />
       </View>
 
@@ -72,7 +67,7 @@ const styles = StyleSheet.create({
   },
 
   headerWrapper: {
-    marginTop: 80, // 👈 SAME AS REGISTRATION
+    marginTop: 80,
   },
 
   formWrapper: {
@@ -86,20 +81,13 @@ const styles = StyleSheet.create({
   },
 
   errorText: {
-    width: 300, // 👈 same as input
+    width: 300,
     color: "#E53935",
     fontSize: 13,
     marginTop: -6,
     marginBottom: 10,
     textAlign: "left",
     fontFamily: "SFCompactRounded-Regular",
-  },
-
-  footer: {
-    position: "absolute",
-    bottom: 30,
-    width: "100%",
-    alignItems: "center",
   },
 });
 
