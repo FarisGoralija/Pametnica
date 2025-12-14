@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, Platform } from "react-native";
 import HeaderWithBack from "../components/HeaderWithBack";
 import CustomInput from "../components/CustomInput";
 import NextButton from "../components/NextButton";
@@ -9,53 +9,23 @@ const RegistrationScreen = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [submitted, setSubmitted] = useState(false);
 
-  // ✅ VALIDATION
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = emailRegex.test(email);
 
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
   const isPasswordValid = passwordRegex.test(password);
 
-  const isFormValid = firstName && lastName && isEmailValid && isPasswordValid;
-
-  // 🔁 Reset errors when user types
-  const handleFirstNameChange = (text) => {
-    setFirstName(text);
-    setSubmitted(false);
-  };
-
-  const handleLastNameChange = (text) => {
-    setLastName(text);
-    setSubmitted(false);
-  };
-
-  const handleEmailChange = (text) => {
-    setEmail(text);
-    setSubmitted(false);
-  };
-
-  const handlePasswordChange = (text) => {
-    setPassword(text);
-    setSubmitted(false);
-  };
-
   const handleCreateAccount = () => {
     setSubmitted(true);
-
-    if (!isFormValid) {
-      // ❌ show errors
-      return;
-    }
-
-    // ✅ ALL GOOD
+    if (!firstName || !lastName || !isEmailValid || !isPasswordValid) return;
     console.log("Account created successfully");
   };
 
   return (
     <View style={styles.container}>
+      {/* HEADER */}
       <View style={styles.headerWrapper}>
         <HeaderWithBack
           title="Registracija"
@@ -69,7 +39,10 @@ const RegistrationScreen = () => {
           placeholder="Ime"
           iconName="account-outline"
           value={firstName}
-          onChangeText={handleFirstNameChange}
+          onChangeText={(t) => {
+            setFirstName(t);
+            setSubmitted(false);
+          }}
           error={submitted && !firstName}
         />
 
@@ -77,31 +50,38 @@ const RegistrationScreen = () => {
           placeholder="Prezime"
           iconName="account-outline"
           value={lastName}
-          onChangeText={handleLastNameChange}
+          onChangeText={(t) => {
+            setLastName(t);
+            setSubmitted(false);
+          }}
           error={submitted && !lastName}
         />
 
-        {/* EMAIL */}
         <CustomInput
           placeholder="Email"
           iconName="email-outline"
           keyboardType="email-address"
           value={email}
-          onChangeText={handleEmailChange}
+          onChangeText={(t) => {
+            setEmail(t);
+            setSubmitted(false);
+          }}
           error={submitted && !isEmailValid}
         />
         {submitted && !isEmailValid && (
           <Text style={styles.errorText}>Unesite ispravnu email adresu</Text>
         )}
 
-        {/* PASSWORD */}
         <CustomInput
           placeholder="Šifra"
           iconName="lock-outline"
           isPassword
           secureTextEntry
           value={password}
-          onChangeText={handlePasswordChange}
+          onChangeText={(t) => {
+            setPassword(t);
+            setSubmitted(false);
+          }}
           error={submitted && !isPasswordValid}
         />
         {submitted && !isPasswordValid && (
@@ -126,24 +106,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
+  // ✅ Android header lifted up, iOS unchanged
   headerWrapper: {
-    marginTop: 80,
+    marginTop: Platform.OS === "android" ? 20 : 80,
   },
 
   formWrapper: {
     alignItems: "center",
-    marginTop: 20,
+    marginTop: Platform.OS === "android" ? 10 : 20,
   },
 
   buttonWrapper: {
-    flex: 1,
-    justifyContent: "flex-end",
     alignItems: "center",
-    marginBottom: 230,
+    marginTop: Platform.OS === "android" ? 40 : 0,
+    marginBottom: Platform.OS === "android" ? 30 : 230,
   },
 
   errorText: {
-    width: 300, // 👈 same as input
+    width: 300,
     color: "#E53935",
     fontSize: 13,
     marginTop: -6,

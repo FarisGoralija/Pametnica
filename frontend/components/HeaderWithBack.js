@@ -1,51 +1,69 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  Platform,
+  StatusBar,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 const HeaderWithBack = ({ title, subtitle }) => {
   const navigation = useNavigation();
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.backIcon}>‹</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.backIcon}>‹</Text>
+        </TouchableOpacity>
 
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        <View style={styles.textContainer}>
+          <Text style={styles.title}>{title}</Text>
+          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safe: {
+    backgroundColor: "#FFFFFF",
+  },
+
   container: {
     width: "100%",
-    marginBottom: 50,
-    paddingTop: 60,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 20,
+    paddingBottom: 30,
+    alignItems: "center",
   },
 
   backButton: {
     position: "absolute",
-    top: 25,
-    left: 20,
-    width: 37,
-    height: 47,
+    left: 16,
+    top: Platform.OS === "android" ? StatusBar.currentHeight + 5 : 20,
+    width: 44,
+    height: 44,
     justifyContent: "center",
     alignItems: "center",
   },
 
   backIcon: {
-    fontSize: 50,
+    fontSize: 48,
     color: "#B0E5DD",
+    lineHeight: 48, // 🔥 prevents clipping
   },
 
   textContainer: {
     alignItems: "center",
+    paddingHorizontal: 40,
   },
 
   title: {
@@ -53,6 +71,7 @@ const styles = StyleSheet.create({
     color: "#B0E5DD",
     marginBottom: 8,
     fontFamily: "SFCompactRounded-Bold",
+    textAlign: "center",
   },
 
   subtitle: {
