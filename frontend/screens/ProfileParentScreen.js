@@ -41,7 +41,7 @@ const ProfileParentScreen = () => {
             />
           }
           text="Tvoja djeca"
-          onPress={() => {}}
+          onPress={() => navigation.navigate("ChildrenList")}
         />
 
         <ProfileOptionRow
