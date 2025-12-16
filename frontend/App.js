@@ -2,6 +2,7 @@ import React from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useFonts } from "expo-font";
 import Navigation from "./navigation";
+import { AuthProvider } from "./context/AuthContext";
 
 export default function App() {
   // Load your fonts
@@ -19,6 +20,9 @@ export default function App() {
       </View>
     );
   }
-
-  return <Navigation />;
+  return (
+    <AuthProvider>
+      <Navigation />
+    </AuthProvider>
+  );
 }

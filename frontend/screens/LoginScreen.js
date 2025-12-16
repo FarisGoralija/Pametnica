@@ -14,9 +14,11 @@ import CustomInput from "../components/CustomInput";
 import NextButton from "../components/NextButton";
 import Logo from "../components/Logo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
 
 const LoginScreen = ({ navigation, route }) => {
   const role = route?.params?.role || "parent";
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,8 +38,7 @@ const LoginScreen = ({ navigation, route }) => {
       return;
     }
 
-    // ✅ LOGIN LOGIC ONLY (NO NAVIGATION)
-    console.log("Login successful");
+    login(role);
   };
   const handleForgotPassword = () => {
     navigation.navigate("ForgotPasswordScreen");
