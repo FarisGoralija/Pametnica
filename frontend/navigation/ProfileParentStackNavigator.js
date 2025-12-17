@@ -4,6 +4,10 @@ import ProfileParentScreen from "../screens/ProfileParentScreen";
 import ProfileDetailsParentScreen from "../screens/ProfileDetailsParentScreen";
 import ChildrenListScreen from "../screens/ChildrenListScreen";
 import AddChildScreen from "../screens/AddChildScreen";
+import ChooseChildForBudgetScreen from "../screens/ChooseChildForBudgetScreen";
+import SetBudgetAmountScreen from "../screens/SetBudgetAmountScreen";
+import ChooseChildForPointsScreen from "../screens/ChooseChildForPointsScreen";
+import RemovePointsAmountScreen from "../screens/RemovePointsAmountScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +21,21 @@ export default function ProfileParentStackNavigator() {
       />
       <Stack.Screen name="ChildrenList" component={ChildrenListScreen} />
       <Stack.Screen name="AddChild" component={AddChildScreen} />
+      <Stack.Screen
+        name="ChooseChildForBudget"
+        component={ChooseChildForBudgetScreen}
+      />
+
+      <Stack.Screen name="SetBudgetAmount" component={SetBudgetAmountScreen} />
+      <Stack.Screen
+        name="ChooseChildForPoints"
+        component={ChooseChildForPointsScreen}
+      />
+
+      <Stack.Screen
+        name="RemovePointsAmount"
+        component={RemovePointsAmountScreen}
+      />
     </Stack.Navigator>
   );
 }

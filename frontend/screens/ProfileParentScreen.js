@@ -49,7 +49,7 @@ const ProfileParentScreen = () => {
             <MaterialCommunityIcons name="cash" size={24} color="#7D7D7D" />
           }
           text="Postavi mjesečni budžet"
-          onPress={() => {}}
+          onPress={() => navigation.navigate("ChooseChildForBudget")}
         />
 
         <ProfileOptionRow
@@ -61,7 +61,7 @@ const ProfileParentScreen = () => {
             />
           }
           text="Skini bodove"
-          onPress={() => {}}
+          onPress={() => navigation.navigate("ChooseChildForPoints")}
         />
 
         {/* LOGOUT */}
