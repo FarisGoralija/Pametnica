@@ -1,0 +1,124 @@
+import React, { useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+
+const AddListModal = ({ visible, onClose, onNewList, onUrgentList }) => {
+  const slideAnim = useRef(new Animated.Value(300)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      slideAnim.setValue(300);
+      opacityAnim.setValue(0);
+    }
+  }, [visible]);
+
+  return (
+    <Modal transparent visible={visible} animationType="none">
+      {/* BACKDROP */}
+      <Animated.View style={[styles.overlay, { opacity: opacityAnim }]}>
+        <TouchableOpacity style={styles.full} onPress={onClose} />
+      </Animated.View>
+
+      {/* PANEL */}
+      <Animated.View
+        style={[
+          styles.panel,
+          {
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
+        <ActionButton
+          icon="plus"
+          label="Nova lista"
+          color="#12C7E5"
+          onPress={onNewList}
+        />
+
+        <ActionButton
+          icon="alert-circle"
+          label="Hitna lista"
+          color="#FF6B6B"
+          onPress={onUrgentList}
+        />
+
+        <ActionButton
+          icon="close"
+          label="Izađi"
+          color="#777"
+          onPress={onClose}
+        />
+      </Animated.View>
+    </Modal>
+  );
+};
+
+const ActionButton = ({ icon, label, onPress, color }) => (
+  <TouchableOpacity style={styles.action} onPress={onPress}>
+    <View style={[styles.iconWrap, { backgroundColor: color }]}>
+      <MaterialCommunityIcons name={icon} size={26} color="#fff" />
+    </View>
+    <Text style={styles.actionText}>{label}</Text>
+  </TouchableOpacity>
+);
+
+const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+  full: {
+    flex: 1,
+  },
+  panel: {
+    position: "absolute",
+    bottom: 20,
+    left: 16,
+    right: 16,
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    paddingVertical: 20,
+    elevation: 8,
+  },
+  action: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  iconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  actionText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
+
+export default AddListModal;

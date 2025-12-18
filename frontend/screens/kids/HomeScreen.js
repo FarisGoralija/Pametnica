@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, StyleSheet, ScrollView, Text } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,8 +6,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ProfileCard from "../../components/ProfileCard";
 import ActionSquare from "../../components/ActionSquare";
 import ListsCard from "../../components/ListsCard";
+import AddListModal from "../../components/AddListModal";
 
 const HomeScreen = () => {
+  const [showAddList, setShowAddList] = useState(false);
+
   return (
     <View style={styles.container}>
       {/* BOTTOM CURVED BACKGROUND */}
@@ -33,7 +36,7 @@ const HomeScreen = () => {
             <MaterialCommunityIcons name="account" size={28} color="#fff" />
           }
           rightIcon={
-            <MaterialCommunityIcons name="bitcoin" size={40} color="#FFD54F" />
+            <MaterialCommunityIcons name="bitcoin" size={60} color="#FFD54F" />
           }
         />
 
@@ -43,7 +46,7 @@ const HomeScreen = () => {
             title="Dodaj listu"
             backgroundColor="#12C7E5"
             icon={<MaterialCommunityIcons name="plus" size={50} color="#fff" />}
-            onPress={() => {}}
+            onPress={() => setShowAddList(true)}
           />
 
           <View style={{ width: 12 }} />
@@ -75,9 +78,23 @@ const HomeScreen = () => {
               color="#fff"
             />
           }
-          onCreatePress={() => {}}
+          onCreatePress={() => setShowAddList(true)}
         />
       </ScrollView>
+
+      {/* ADD LIST MODAL */}
+      <AddListModal
+        visible={showAddList}
+        onClose={() => setShowAddList(false)}
+        onNewList={() => {
+          setShowAddList(false);
+          // navigation.navigate("CreateList");
+        }}
+        onUrgentList={() => {
+          setShowAddList(false);
+          // navigation.navigate("UrgentList");
+        }}
+      />
     </View>
   );
 };
@@ -85,14 +102,14 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF", // top area stays white
+    backgroundColor: "#FFFFFF",
   },
 
   bottomWave: {
     position: "absolute",
     bottom: 0,
     width: "100%",
-    height: "55%", // starts from middle down
+    height: "55%",
     backgroundColor: "#BDEFF4",
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
