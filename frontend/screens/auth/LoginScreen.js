@@ -10,11 +10,11 @@ import {
   ScrollView,
 } from "react-native";
 
-import CustomInput from "../components/CustomInput";
-import NextButton from "../components/NextButton";
-import Logo from "../components/Logo";
+import CustomInput from "../../components/CustomInput";
+import NextButton from "../../components/NextButton";
+import Logo from "../../components/Logo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 const LoginScreen = ({ navigation, route }) => {
   const role = route?.params?.role || "parent";

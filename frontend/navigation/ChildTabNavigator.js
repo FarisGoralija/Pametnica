@@ -1,9 +1,9 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import HomeScreen from "../screens/HomeScreen";
-import ListsScreen from "../screens/ListsScreen";
-import ProfileScreen from "../screens/ProfileScreen";
+import HomeScreen from "../screens/kids/HomeScreen";
+import ListsScreen from "../screens/kids/ListsScreen";
+import ProfileChildStackNavigator from "./ProfileChildStackNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -78,7 +78,7 @@ export default function ChildTabNavigator() {
       {/* PROFILE */}
       <Tab.Screen
         name="Profil"
-        component={ProfileScreen}
+        component={ProfileChildStackNavigator}
         options={{
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons

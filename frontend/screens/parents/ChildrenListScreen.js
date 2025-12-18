@@ -9,7 +9,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
-import HeaderWithBack from "../components/HeaderWithBack";
+import HeaderWithBack from "../../components/HeaderWithBack";
 
 const ChildrenListScreen = () => {
   const navigation = useNavigation();

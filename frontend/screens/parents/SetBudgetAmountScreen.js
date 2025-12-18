@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { View, StyleSheet, Platform, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-import HeaderWithBack from "../components/HeaderWithBack";
-import CustomInput from "../components/CustomInput";
-import NextButton from "../components/NextButton";
+import HeaderWithBack from "../../components/HeaderWithBack";
+import CustomInput from "../../components/CustomInput";
+import NextButton from "../../components/NextButton";
 
 const SetBudgetAmountScreen = () => {
   const navigation = useNavigation();

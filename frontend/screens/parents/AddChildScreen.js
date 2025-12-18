@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { View, StyleSheet, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-import HeaderWithBack from "../components/HeaderWithBack";
-import CustomInput from "../components/CustomInput";
-import NextButton from "../components/NextButton";
+import HeaderWithBack from "../../components/HeaderWithBack";
+import CustomInput from "../../components/CustomInput";
+import NextButton from "../../components/NextButton";
 
 const AddChildScreen = () => {
   const navigation = useNavigation();
@@ -16,13 +16,12 @@ const AddChildScreen = () => {
   const isDisabled = !name || !email || !password;
 
   const handleAddChild = () => {
-  navigation.navigate("ChildrenList", {
-    newChild: {
-      name,
-    },
-  });
-};
-
+    navigation.navigate("ChildrenList", {
+      newChild: {
+        name,
+      },
+    });
+  };
 
   return (
     <View style={styles.container}>

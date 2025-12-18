@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, StatusBar } from 'react-native';
-import RoleCard from '../components/RoleCard';
-import HeaderComponent from '../components/HeaderNoBack';
-import NextButton from '../components/NextButton';
+import React, { useState } from "react";
+import { View, StyleSheet, StatusBar } from "react-native";
+import RoleCard from "../../components/RoleCard";
+import HeaderComponent from "../../components/HeaderNoBack";
+import NextButton from "../../components/NextButton";
 
 const ChooseRoleScreen = ({ navigation }) => {
-  const [selectedRole, setSelectedRole] = useState('parent');
+  const [selectedRole, setSelectedRole] = useState("parent");
 
   const handleNextPress = () => {
-    navigation.navigate('LoginScreen', { role: selectedRole });
+    navigation.navigate("LoginScreen", { role: selectedRole });
   };
 
   return (
@@ -25,8 +25,8 @@ const ChooseRoleScreen = ({ navigation }) => {
         <RoleCard
           title="Roditelj"
           iconName="account-group"
-          isSelected={selectedRole === 'parent'}
-          onPress={() => setSelectedRole('parent')}
+          isSelected={selectedRole === "parent"}
+          onPress={() => setSelectedRole("parent")}
         />
 
         <View style={{ width: 20 }} />
@@ -34,8 +34,8 @@ const ChooseRoleScreen = ({ navigation }) => {
         <RoleCard
           title="Dijete"
           iconName="baby-face-outline"
-          isSelected={selectedRole === 'child'}
-          onPress={() => setSelectedRole('child')}
+          isSelected={selectedRole === "child"}
+          onPress={() => setSelectedRole("child")}
         />
       </View>
 
@@ -57,22 +57,22 @@ const ChooseRoleScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 60,
   },
 
   cardContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "center",
+    width: "100%",
     marginTop: 60, // smaller, safe
   },
 
   buttonWrapper: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     marginBottom: 80, // safe bottom spacing
   },
 });

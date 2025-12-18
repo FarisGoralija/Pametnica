@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput,Platform } from "react-native";
-import HeaderWithBack from "../components/HeaderWithBack";
-import NextButton from "../components/NextButton";
+import { View, Text, StyleSheet, TextInput, Platform } from "react-native";
+import HeaderWithBack from "../../components/HeaderWithBack";
+import NextButton from "../../components/NextButton";
 
 const CODE_LENGTH = 5;
 

@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import ListsScreen from "../screens/ListsScreen";
+import ListsScreen from "../screens/kids/ListsScreen";
 import ProfileParentStackNavigator from "./ProfileParentStackNavigator";
 
 const Tab = createBottomTabNavigator();

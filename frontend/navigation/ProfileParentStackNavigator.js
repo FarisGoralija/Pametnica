@@ -1,13 +1,13 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import ProfileParentScreen from "../screens/ProfileParentScreen";
-import ProfileDetailsParentScreen from "../screens/ProfileDetailsParentScreen";
-import ChildrenListScreen from "../screens/ChildrenListScreen";
-import AddChildScreen from "../screens/AddChildScreen";
-import ChooseChildForBudgetScreen from "../screens/ChooseChildForBudgetScreen";
-import SetBudgetAmountScreen from "../screens/SetBudgetAmountScreen";
-import ChooseChildForPointsScreen from "../screens/ChooseChildForPointsScreen";
-import RemovePointsAmountScreen from "../screens/RemovePointsAmountScreen";
+import ProfileParentScreen from "../screens/parents/ProfileParentScreen";
+import ProfileDetailsParentScreen from "../screens/parents/ProfileDetailsParentScreen";
+import ChildrenListScreen from "../screens/parents/ChildrenListScreen";
+import AddChildScreen from "../screens/parents/AddChildScreen";
+import ChooseChildForBudgetScreen from "../screens/parents/ChooseChildForBudgetScreen";
+import SetBudgetAmountScreen from "../screens/parents/SetBudgetAmountScreen";
+import ChooseChildForPointsScreen from "../screens/parents/ChooseChildForPointsScreen";
+import RemovePointsAmountScreen from "../screens/parents/RemovePointsAmountScreen";
 
 const Stack = createNativeStackNavigator();
 

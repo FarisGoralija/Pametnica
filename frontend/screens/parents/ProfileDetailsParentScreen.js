@@ -9,8 +9,8 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
-import HeaderWithBack from "../components/HeaderWithBack";
-import ProfileDetailRow from "../components/ProfileDetailRow";
+import HeaderWithBack from "../../components/HeaderWithBack";
+import ProfileDetailRow from "../../components/ProfileDetailRow";
 
 const ProfileDetailsParentScreen = () => {
   const navigation = useNavigation();
@@ -36,11 +36,7 @@ const ProfileDetailsParentScreen = () => {
             />
           }
           rightIcon={
-            <MaterialCommunityIcons
-              name="pencil"
-              size={20}
-              color="#7D7D7D"
-            />
+            <MaterialCommunityIcons name="pencil" size={20} color="#7D7D7D" />
           }
           onPress={() => {}}
         />
@@ -57,11 +53,7 @@ const ProfileDetailsParentScreen = () => {
             />
           }
           rightIcon={
-            <MaterialCommunityIcons
-              name="pencil"
-              size={20}
-              color="#7D7D7D"
-            />
+            <MaterialCommunityIcons name="pencil" size={20} color="#7D7D7D" />
           }
           onPress={() => {}}
         />
@@ -78,11 +70,7 @@ const ProfileDetailsParentScreen = () => {
             />
           }
           rightIcon={
-            <MaterialCommunityIcons
-              name="pencil"
-              size={20}
-              color="#7D7D7D"
-            />
+            <MaterialCommunityIcons name="pencil" size={20} color="#7D7D7D" />
           }
           onPress={() => {}}
         />
@@ -109,13 +97,8 @@ const ProfileDetailsParentScreen = () => {
         />
 
         {/* CHANGE PASSWORD */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => {}}
-        >
-          <Text style={styles.changePasswordText}>
-            Promijeni šifru
-          </Text>
+        <TouchableOpacity activeOpacity={0.7} onPress={() => {}}>
+          <Text style={styles.changePasswordText}>Promijeni šifru</Text>
         </TouchableOpacity>
       </View>
     </View>

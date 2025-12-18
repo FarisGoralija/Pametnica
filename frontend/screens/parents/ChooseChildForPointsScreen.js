@@ -8,9 +8,9 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-import HeaderWithBack from "../components/HeaderWithBack";
-import RoleCard from "../components/RoleCard";
-import NextButton from "../components/NextButton";
+import HeaderWithBack from "../../components/HeaderWithBack";
+import RoleCard from "../../components/RoleCard";
+import NextButton from "../../components/NextButton";
 
 const ChooseChildForPointsScreen = () => {
   const navigation = useNavigation();

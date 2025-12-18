@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text,Platform } from "react-native";
-import HeaderWithBack from "../components/HeaderWithBack";
-import CustomInput from "../components/CustomInput";
-import NextButton from "../components/NextButton";
+import { View, StyleSheet, Text, Platform } from "react-native";
+import HeaderWithBack from "../../components/HeaderWithBack";
+import CustomInput from "../../components/CustomInput";
+import NextButton from "../../components/NextButton";
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");

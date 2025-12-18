@@ -1,10 +1,10 @@
 import React from "react";
 import { View, StyleSheet, Platform } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
-import HeaderWithBack from "../components/HeaderWithBack";
-import ProfileOptionRow from "../components/ProfileOptionRow";
+import HeaderWithBack from "../../components/HeaderWithBack";
+import ProfileOptionRow from "../../components/ProfileOptionRow";
 import { useNavigation } from "@react-navigation/native";
 
 const ProfileParentScreen = () => {
