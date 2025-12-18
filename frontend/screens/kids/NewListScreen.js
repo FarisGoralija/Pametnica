@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -9,8 +9,26 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
+import AddItemModal from "../../components/AddItemModal";
 
 const NewListScreen = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [items, setItems] = useState([]);
+
+  const addItem = (text) => {
+    const cleaned = text.trim();
+    if (!cleaned) return;
+
+    setItems((prev) => [
+      ...prev,
+      { id: Date.now().toString(), text: cleaned },
+    ]);
+  };
+
+  const removeItem = (id) => {
+    setItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -38,51 +56,87 @@ const NewListScreen = () => {
           <Text style={styles.listTitle}>Lista 1</Text>
 
           <View style={styles.actions}>
-            <MaterialCommunityIcons
-              name="pencil"
-              size={20}
-              color="#5F5F5F"
-              style={{ marginRight: 12 }}
-            />
-            <MaterialCommunityIcons
-              name="trash-can"
-              size={20}
-              color="#E53935"
-            />
+            <TouchableOpacity style={styles.actionBtn} activeOpacity={0.8}>
+              <MaterialCommunityIcons name="pencil" size={30} color="#4A4A4A" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionBtn} activeOpacity={0.8}>
+              <MaterialCommunityIcons
+                name="trash-can"
+                size={30}
+                color="#E53935"
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* EMPTY STATE */}
+        {/* CONTENT AREA */}
         <View style={styles.emptyState}>
-          <View style={styles.illustration}>
-            <MaterialCommunityIcons
-              name="cart-outline"
-              size={64}
-              color="#F4C97A"
-            />
-            <MaterialCommunityIcons
-              name="food-apple"
-              size={26}
-              color="#F06292"
-              style={styles.fruit1}
-            />
-            <MaterialCommunityIcons
-              name="food-carrot"
-              size={26}
-              color="#FF8F00"
-              style={styles.fruit2}
-            />
-            <MaterialCommunityIcons
-              name="food-pear"
-              size={24}
-              color="#66BB6A"
-              style={styles.fruit3}
-            />
-          </View>
+          {items.length === 0 ? (
+            <>
+              {/* KEEP FUN EMPTY ILLUSTRATION */}
+              <View style={styles.illustration}>
+                <MaterialCommunityIcons
+                  name="cart-outline"
+                  size={64}
+                  color="#F4C97A"
+                />
+                <MaterialCommunityIcons
+                  name="food-apple"
+                  size={26}
+                  color="#F06292"
+                  style={styles.fruit1}
+                />
+                <MaterialCommunityIcons
+                  name="fruit-watermelon"
+                  size={26}
+                  color="#299b0cff"
+                  style={styles.fruit2}
+                />
+                <MaterialCommunityIcons
+                  name="fruit-cherries"
+                  size={24}
+                  color="#60064bff"
+                  style={styles.fruit3}
+                />
+              </View>
 
-          <Text style={styles.emptyText}>Nemate nijednu stavku na listi</Text>
+              <Text style={styles.emptyText}>Nemate nijednu stavku na listi</Text>
+            </>
+          ) : (
+            <View style={{ width: "100%" }}>
+              {items.map((item) => (
+                <View key={item.id} style={styles.itemRow}>
+                  <MaterialCommunityIcons
+                    name="check-circle-outline"
+                    size={26}
+                    color="#12C7E5"
+                  />
 
-          <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
+                  <Text style={styles.itemText}>{item.text}</Text>
+
+                  <TouchableOpacity
+                    onPress={() => removeItem(item.id)}
+                    activeOpacity={0.8}
+                    style={styles.itemTrashBtn}
+                  >
+                    <MaterialCommunityIcons
+                      name="trash-can"
+                      size={24}
+                      color="#E53935"
+                    />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* ADD BUTTON ALWAYS VISIBLE */}
+          <TouchableOpacity
+            style={styles.addButton}
+            activeOpacity={0.8}
+            onPress={() => setShowModal(true)}
+          >
             <MaterialCommunityIcons
               name="plus"
               size={18}
@@ -93,9 +147,17 @@ const NewListScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* MODAL */}
+      <AddItemModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        onAdd={addItem}
+      />
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -116,14 +178,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#12C7E5",
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     borderRadius: 16,
   },
 
   sendText: {
     color: "#FFFFFF",
-    fontSize: 13,
+    fontSize: 18,
     fontWeight: "600",
   },
 
@@ -143,9 +205,16 @@ const styles = StyleSheet.create({
   },
 
   listTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#5F5F5F",
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#4A4A4A",
+  },
+
+  actionBtn: {
+    padding: 10,
+    marginLeft: 8,
+    borderRadius: 12,
+    backgroundColor: "#EAF7F7",
   },
 
   actions: {
@@ -199,12 +268,40 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 22,
+    marginTop: 6,
   },
 
   addText: {
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
+  },
+
+  // ✅ ITEM CARD (with border)
+  itemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+
+    borderWidth: 2,
+    borderColor: "#12C7E5",
+  },
+
+  itemText: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "600",
+    marginLeft: 10,
+    color: "#4A4A4A",
+  },
+
+  itemTrashBtn: {
+    padding: 6,
+    borderRadius: 10,
   },
 });
 
