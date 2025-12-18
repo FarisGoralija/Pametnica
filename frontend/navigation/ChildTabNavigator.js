@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import HomeScreen from "../screens/kids/HomeScreen";
-import ListsScreen from "../screens/kids/ListsScreen";
+import ListsStackNavigator from "./ListsStackNavigator";
 import ProfileChildStackNavigator from "./ProfileChildStackNavigator";
 
 const Tab = createBottomTabNavigator();
@@ -61,9 +61,10 @@ export default function ChildTabNavigator() {
       />
 
       {/* LISTS */}
+      {/* LISTS */}
       <Tab.Screen
         name="Liste"
-        component={ListsScreen}
+        component={ListsStackNavigator}
         options={{
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons

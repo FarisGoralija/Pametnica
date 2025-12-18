@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { View, StyleSheet, ScrollView, Text } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useNavigation } from "@react-navigation/native";
 import ProfileCard from "../../components/ProfileCard";
 import ActionSquare from "../../components/ActionSquare";
 import ListsCard from "../../components/ListsCard";
 import AddListModal from "../../components/AddListModal";
 
 const HomeScreen = () => {
+  const navigation = useNavigation();
   const [showAddList, setShowAddList] = useState(false);
 
   return (
@@ -61,7 +62,7 @@ const HomeScreen = () => {
                 color="#fff"
               />
             }
-            onPress={() => {}}
+            onPress={() => navigation.navigate("Liste")}
           />
         </View>
 
@@ -82,17 +83,26 @@ const HomeScreen = () => {
         />
       </ScrollView>
 
-      {/* ADD LIST MODAL */}
       <AddListModal
         visible={showAddList}
         onClose={() => setShowAddList(false)}
         onNewList={() => {
           setShowAddList(false);
-          // navigation.navigate("CreateList");
+
+          requestAnimationFrame(() => {
+            navigation.navigate("Liste", {
+              screen: "NewListScreen",
+            });
+          });
         }}
         onUrgentList={() => {
           setShowAddList(false);
-          // navigation.navigate("UrgentList");
+
+          requestAnimationFrame(() => {
+            navigation.navigate("Liste", {
+              screen: "UrgentListScreen",
+            });
+          });
         }}
       />
     </View>
