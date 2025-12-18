@@ -51,8 +51,21 @@ const ChildrenListScreen = () => {
                 />
 
                 <View style={{ marginLeft: 14 }}>
-                  <Text style={styles.childLabel}>Ime i prezime</Text>
-                  <Text style={styles.childName}>{child.name}</Text>
+                  <Text
+                    style={styles.childLabel}
+                    allowFontScaling={false}
+                    includeFontPadding={false}
+                  >
+                    Ime i prezime
+                  </Text>
+
+                  <Text
+                    style={styles.childName}
+                    allowFontScaling={false}
+                    includeFontPadding={false}
+                  >
+                    {child.name}
+                  </Text>
                 </View>
               </View>
             ))}
@@ -91,7 +104,9 @@ const styles = StyleSheet.create({
   childCard: {
     backgroundColor: "#C0EAF0",
     borderRadius: 10,
-    padding: 16,
+    minHeight: 72, // ✅ FIXED VISUAL HEIGHT
+    paddingHorizontal: 16,
+    paddingVertical: 10, // ⬅️ smaller than before
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 14,
@@ -99,12 +114,14 @@ const styles = StyleSheet.create({
 
   childLabel: {
     fontSize: 12,
+    lineHeight: 14, // ✅ important
     color: "#7D7D7D",
     fontFamily: "SFCompactRounded-Regular",
   },
 
   childName: {
     fontSize: 16,
+    lineHeight: 18, // ✅ important
     color: "#4A4A4A",
     fontFamily: "SFCompactRounded-Semibold",
   },
