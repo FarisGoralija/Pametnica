@@ -6,8 +6,11 @@ import HeaderWithBack from "../../components/HeaderWithBack";
 import CustomInput from "../../components/CustomInput";
 import NextButton from "../../components/NextButton";
 
+import { useChildren } from "../../context/ChildrenContext";
+
 const AddChildScreen = () => {
   const navigation = useNavigation();
+  const { addChild } = useChildren();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -16,11 +19,14 @@ const AddChildScreen = () => {
   const isDisabled = !name || !email || !password;
 
   const handleAddChild = () => {
-    navigation.navigate("ChildrenList", {
-      newChild: {
-        name,
-      },
+    // ✅ add child to context
+    addChild({
+      name,
+      email,
     });
+
+    // ✅ go back to ChildrenList screen
+    navigation.goBack();
   };
 
   return (

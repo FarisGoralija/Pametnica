@@ -12,24 +12,22 @@ import HeaderWithBack from "../../components/HeaderWithBack";
 import RoleCard from "../../components/RoleCard";
 import NextButton from "../../components/NextButton";
 
+import { useChildren } from "../../context/ChildrenContext";
+
 const ChooseChildForBudgetScreen = () => {
   const navigation = useNavigation();
-
-  // 🔹 TEMP DATA (later from backend / context)
-  const children = [
-    { id: 1, name: "Faris" },
-    { id: 2, name: "Erol" },
-  ];
+  const { childrenList } = useChildren();
 
   const [selectedChildId, setSelectedChildId] = useState(null);
-
   const handleNext = () => {
-    if (!selectedChildId) return;
+    if (selectedChildId === null) return;
 
     navigation.navigate("SetBudgetAmount", {
       childId: selectedChildId,
     });
   };
+
+  const isSingleChild = childrenList.length === 1;
 
   return (
     <View style={styles.container}>
@@ -37,15 +35,16 @@ const ChooseChildForBudgetScreen = () => {
       <View style={styles.headerWrapper}>
         <HeaderWithBack
           title="Postavi mjesečni budžet"
-          subtitle="Odaberi dijete za postavku mjesečnog budžeta"
+          subtitle="Odaberite dijete za koje želite postaviti mjesečni budžet"
         />
       </View>
 
       <View style={styles.content}>
-        {children.length === 0 ? (
+        {childrenList.length === 0 ? (
           <>
             <Text style={styles.emptyText}>
-              Trenutno nemate registrovano dijete
+              Nemate dodanu djecu. Da biste postavili mjesečni budžet, prvo
+              dodajte dijete.
             </Text>
 
             <TouchableOpacity
@@ -57,14 +56,19 @@ const ChooseChildForBudgetScreen = () => {
           </>
         ) : (
           <>
-            <View style={styles.cardsRow}>
-              {children.map((child) => (
+            <View
+              style={[
+                styles.cardsRow,
+                isSingleChild && styles.centerSingleCard,
+              ]}
+            >
+              {childrenList.map((child, index) => (
                 <RoleCard
-                  key={child.id}
+                  key={index}
                   title={child.name}
                   iconName="emoticon-happy-outline"
-                  isSelected={selectedChildId === child.id}
-                  onPress={() => setSelectedChildId(child.id)}
+                  isSelected={selectedChildId === index}
+                  onPress={() => setSelectedChildId(index)}
                 />
               ))}
             </View>
@@ -72,7 +76,7 @@ const ChooseChildForBudgetScreen = () => {
             <NextButton
               title="Dalje"
               onPress={handleNext}
-              isDisabled={!selectedChildId}
+              isDisabled={selectedChildId === null}
             />
           </>
         )}
@@ -80,6 +84,8 @@ const ChooseChildForBudgetScreen = () => {
     </View>
   );
 };
+
+export default ChooseChildForBudgetScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -104,20 +110,23 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
 
+  centerSingleCard: {
+    justifyContent: "center",
+  },
+
   emptyText: {
     fontSize: 14,
     fontFamily: "SFCompactRounded-Regular",
     color: "#7D7D7D",
     textAlign: "center",
     marginTop: 40,
+    lineHeight: 20,
   },
 
   addChildText: {
-    marginTop: 10,
+    marginTop: 12,
     fontSize: 14,
     fontFamily: "SFCompactRounded-Semibold",
     color: "#228390",
   },
 });
-
-export default ChooseChildForBudgetScreen;

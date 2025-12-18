@@ -12,24 +12,23 @@ import HeaderWithBack from "../../components/HeaderWithBack";
 import RoleCard from "../../components/RoleCard";
 import NextButton from "../../components/NextButton";
 
+import { useChildren } from "../../context/ChildrenContext";
+
 const ChooseChildForPointsScreen = () => {
   const navigation = useNavigation();
-
-  // 🔹 TEMP (later from context / backend)
-  const children = [
-    { id: 1, name: "Faris" },
-    { id: 2, name: "Erol" },
-  ];
+  const { childrenList } = useChildren();
 
   const [selectedChildId, setSelectedChildId] = useState(null);
 
   const handleNext = () => {
-    if (!selectedChildId) return;
+    if (selectedChildId === null) return;
 
     navigation.navigate("RemovePointsAmount", {
       childId: selectedChildId,
     });
   };
+
+  const isSingleChild = childrenList.length === 1;
 
   return (
     <View style={styles.container}>
@@ -37,15 +36,15 @@ const ChooseChildForPointsScreen = () => {
       <View style={styles.headerWrapper}>
         <HeaderWithBack
           title="Skini bodove"
-          subtitle="Odaberi dijete kojem želiš skinuti bodove"
+          subtitle="Odaberite dijete kojem želite skinuti bodove"
         />
       </View>
 
       <View style={styles.content}>
-        {children.length === 0 ? (
+        {childrenList.length === 0 ? (
           <>
             <Text style={styles.emptyText}>
-              Trenutno nemate registrovano dijete
+              Nemate dodanu djecu. Da biste skinuli bodove, prvo dodajte dijete.
             </Text>
 
             <TouchableOpacity
@@ -57,14 +56,19 @@ const ChooseChildForPointsScreen = () => {
           </>
         ) : (
           <>
-            <View style={styles.cardsRow}>
-              {children.map((child) => (
+            <View
+              style={[
+                styles.cardsRow,
+                isSingleChild && styles.centerSingleCard,
+              ]}
+            >
+              {childrenList.map((child, index) => (
                 <RoleCard
-                  key={child.id}
+                  key={index}
                   title={child.name}
                   iconName="emoticon-happy-outline"
-                  isSelected={selectedChildId === child.id}
-                  onPress={() => setSelectedChildId(child.id)}
+                  isSelected={selectedChildId === index}
+                  onPress={() => setSelectedChildId(index)}
                 />
               ))}
             </View>
@@ -72,7 +76,7 @@ const ChooseChildForPointsScreen = () => {
             <NextButton
               title="Dalje"
               onPress={handleNext}
-              isDisabled={!selectedChildId}
+              isDisabled={selectedChildId === null}
             />
           </>
         )}
@@ -80,6 +84,9 @@ const ChooseChildForPointsScreen = () => {
     </View>
   );
 };
+
+export default ChooseChildForPointsScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -103,20 +110,23 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
 
+  centerSingleCard: {
+    justifyContent: "center",
+  },
+
   emptyText: {
     fontSize: 14,
     fontFamily: "SFCompactRounded-Regular",
     color: "#7D7D7D",
     textAlign: "center",
     marginTop: 40,
+    lineHeight: 20,
   },
 
   addChildText: {
-    marginTop: 10,
+    marginTop: 12,
     fontSize: 14,
     fontFamily: "SFCompactRounded-Semibold",
     color: "#228390",
   },
 });
-
-export default ChooseChildForPointsScreen;

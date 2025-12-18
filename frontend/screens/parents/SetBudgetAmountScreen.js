@@ -1,6 +1,10 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Platform, Text } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { View, Text, StyleSheet, Platform } from "react-native";
+import {
+  useNavigation,
+  useRoute,
+  CommonActions,
+} from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import CustomInput from "../../components/CustomInput";
@@ -8,58 +12,58 @@ import NextButton from "../../components/NextButton";
 
 const SetBudgetAmountScreen = () => {
   const navigation = useNavigation();
-  const [amount, setAmount] = useState("");
-  const [error, setError] = useState(false);
+  const route = useRoute();
 
-  const handleChange = (text) => {
-    if (/^\d*$/.test(text)) {
-      setAmount(text);
-      setError(false);
-    } else {
-      setError(true);
-    }
-  };
+  const { childId } = route.params;
 
-  const handleNext = () => {
-    if (!amount) {
-      setError(true);
-      return;
-    }
+  const [budget, setBudget] = useState("");
 
-    // 🔹 SAVE BUDGET (later backend)
-    navigation.goBack();
+  const isDisabled = !budget;
+
+  const handleSaveBudget = () => {
+    // here you will later save the budget (context / backend)
+
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: "ProfileParentMain" }],
+      })
+    );
   };
 
   return (
     <View style={styles.container}>
+      {/* HEADER */}
       <View style={styles.headerWrapper}>
         <HeaderWithBack
-          title="Postavi mjesečni budžet"
-          subtitle="Upišite koliko novca dobijate ovaj mjesec za vaše dijete"
+          title="Mjesečni budžet"
+          subtitle="Unesite iznos mjesečnog budžeta"
         />
       </View>
 
+      {/* CONTENT */}
       <View style={styles.content}>
+        <Text style={styles.label}>Iznos budžeta (KM)</Text>
+
         <CustomInput
-          placeholder="Iznos"
-          value={amount}
-          onChangeText={handleChange}
-          iconName="wallet-outline"
-          keyboardType="number-pad"
-          error={error}
+          placeholder="npr. 50"
+          value={budget}
+          onChangeText={setBudget}
+          keyboardType="numeric"
+          iconName="cash"
         />
 
-        {error && (
-          <Text style={styles.errorText}>
-            Unos mora biti isključivo broj, ne slova
-          </Text>
-        )}
-
-        <NextButton title="Dalje" onPress={handleNext} isDisabled={!amount} />
+        <NextButton
+          title="Sačuvaj"
+          onPress={handleSaveBudget}
+          isDisabled={isDisabled}
+        />
       </View>
     </View>
   );
 };
+
+export default SetBudgetAmountScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -73,15 +77,15 @@ const styles = StyleSheet.create({
 
   content: {
     marginTop: 40,
+    paddingHorizontal: 40,
     alignItems: "center",
   },
 
-  errorText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: "#E53935",
+  label: {
+    alignSelf: "flex-start",
+    fontSize: 14,
+    color: "#7D7D7D",
     fontFamily: "SFCompactRounded-Regular",
+    marginBottom: 10,
   },
 });
-
-export default SetBudgetAmountScreen;

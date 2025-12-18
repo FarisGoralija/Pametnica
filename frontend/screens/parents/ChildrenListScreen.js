@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -7,22 +7,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
+import { useChildren } from "../../context/ChildrenContext";
 
 const ChildrenListScreen = () => {
   const navigation = useNavigation();
-  const route = useRoute();
-
-  const [children, setChildren] = useState([]);
-
-  // ✅ ADD CHILD WHEN COMING BACK FROM ADD SCREEN
-  useEffect(() => {
-    if (route.params?.newChild) {
-      setChildren((prev) => [...prev, route.params.newChild]);
-    }
-  }, [route.params?.newChild]);
+  const { childrenList } = useChildren();
 
   return (
     <View style={styles.container}>
@@ -33,7 +25,7 @@ const ChildrenListScreen = () => {
 
       {/* CONTENT */}
       <View style={styles.content}>
-        {children.length === 0 ? (
+        {childrenList.length === 0 ? (
           // EMPTY STATE
           <TouchableOpacity
             style={styles.addEmpty}
@@ -50,7 +42,7 @@ const ChildrenListScreen = () => {
         ) : (
           <>
             {/* CHILD CARDS */}
-            {children.map((child, index) => (
+            {childrenList.map((child, index) => (
               <View key={index} style={styles.childCard}>
                 <MaterialCommunityIcons
                   name="emoticon-happy-outline"
@@ -78,6 +70,9 @@ const ChildrenListScreen = () => {
     </View>
   );
 };
+
+export default ChildrenListScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -134,5 +129,3 @@ const styles = StyleSheet.create({
     fontFamily: "SFCompactRounded-Semibold",
   },
 });
-
-export default ChildrenListScreen;

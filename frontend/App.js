@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from "react-native";
 import { useFonts } from "expo-font";
 import Navigation from "./navigation";
 import { AuthProvider } from "./context/AuthContext";
+import { ChildrenProvider } from "./context/ChildrenContext";
 
 export default function App() {
   // Load your fonts
@@ -21,8 +22,10 @@ export default function App() {
     );
   }
   return (
-    <AuthProvider>
-      <Navigation />
-    </AuthProvider>
+    <ChildrenProvider>
+      <AuthProvider>
+        <Navigation />
+      </AuthProvider>
+    </ChildrenProvider>
   );
 }

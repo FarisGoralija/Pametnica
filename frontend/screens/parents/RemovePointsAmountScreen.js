@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Platform, Text } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import {
+  useNavigation,
+  useRoute,
+  CommonActions,
+} from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import CustomInput from "../../components/CustomInput";
@@ -8,6 +12,9 @@ import NextButton from "../../components/NextButton";
 
 const RemovePointsAmountScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+
+  const { childId } = route.params;
 
   const [points, setPoints] = useState("");
   const [error, setError] = useState(false);
@@ -21,22 +28,31 @@ const RemovePointsAmountScreen = () => {
     }
   };
 
-  const handleNext = () => {
+  const handleSave = () => {
     if (!points) {
       setError(true);
       return;
     }
 
-    // 🔹 SAVE POINTS REDUCTION (later backend)
-    navigation.goBack();
+    // 🔹 HERE you will later remove points (context / backend)
+    // example: removePoints(childId, points);
+
+    // ✅ RESET and go back to ProfileParentMain
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: "ProfileParentMain" }],
+      })
+    );
   };
 
   return (
     <View style={styles.container}>
+      {/* HEADER */}
       <View style={styles.headerWrapper}>
         <HeaderWithBack
           title="Skini bodove"
-          subtitle="Upiši koliko bodova želiš skinuti"
+          subtitle="Upišite koliko bodova želite skinuti"
         />
       </View>
 
@@ -54,11 +70,13 @@ const RemovePointsAmountScreen = () => {
           <Text style={styles.errorText}>Unos mora biti isključivo broj</Text>
         )}
 
-        <NextButton title="Dalje" onPress={handleNext} isDisabled={!points} />
+        <NextButton title="Sačuvaj" onPress={handleSave} isDisabled={!points} />
       </View>
     </View>
   );
 };
+
+export default RemovePointsAmountScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -82,5 +100,3 @@ const styles = StyleSheet.create({
     fontFamily: "SFCompactRounded-Regular",
   },
 });
-
-export default RemovePointsAmountScreen;
