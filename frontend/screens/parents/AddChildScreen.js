@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet, Platform, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
@@ -10,22 +10,48 @@ import { useChildren } from "../../context/ChildrenContext";
 
 const AddChildScreen = () => {
   const navigation = useNavigation();
-  const { addChild } = useChildren();
+  const { addChild, childrenList } = useChildren();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [maxError, setMaxError] = useState(false);
 
-  const isDisabled = !name || !email || !password;
+  // ✅ REGEX
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email);
+
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+  const isPasswordValid = passwordRegex.test(password);
+
+  // ✅ Capitalize name
+  const handleNameChange = (text) => {
+    const formatted = text
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+
+    setName(formatted);
+    setSubmitted(false);
+    setMaxError(false);
+  };
 
   const handleAddChild = () => {
-    // ✅ add child to context
+    setSubmitted(true);
+
+    // ❌ MAX 2 CHILDREN
+    if (childrenList.length >= 2) {
+      setMaxError(true);
+      return;
+    }
+
+    if (!name || !isEmailValid || !isPasswordValid) return;
+
     addChild({
       name,
       email,
     });
 
-    // ✅ go back to ChildrenList screen
     navigation.goBack();
   };
 
@@ -44,32 +70,55 @@ const AddChildScreen = () => {
         <CustomInput
           placeholder="Ime i prezime"
           value={name}
-          onChangeText={setName}
+          onChangeText={handleNameChange}
           iconName="account-outline"
+          error={submitted && !name}
         />
 
         <CustomInput
           placeholder="Email djeteta"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(t) => {
+            setEmail(t);
+            setSubmitted(false);
+            setMaxError(false);
+          }}
           iconName="email-outline"
           keyboardType="email-address"
+          error={submitted && !isEmailValid}
         />
+        {submitted && !isEmailValid && (
+          <Text style={styles.errorText}>
+            Unesite ispravnu email adresu
+          </Text>
+        )}
 
         <CustomInput
           placeholder="Šifra"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(t) => {
+            setPassword(t);
+            setSubmitted(false);
+            setMaxError(false);
+          }}
           iconName="lock-outline"
           secureTextEntry
           isPassword
+          error={submitted && !isPasswordValid}
         />
+        {submitted && !isPasswordValid && (
+          <Text style={styles.errorText}>
+            Šifra mora imati najmanje 8 znakova, jedno veliko slovo, broj i simbol.
+          </Text>
+        )}
 
-        <NextButton
-          title="Dalje"
-          onPress={handleAddChild}
-          isDisabled={isDisabled}
-        />
+        {maxError && (
+          <Text style={styles.errorText}>
+            Možete dodati najviše dvoje djece.
+          </Text>
+        )}
+
+        <NextButton title="Dalje" onPress={handleAddChild} />
       </View>
     </View>
   );
@@ -90,5 +139,15 @@ const styles = StyleSheet.create({
   form: {
     marginTop: 40,
     alignItems: "center",
+  },
+
+  errorText: {
+    width: 300,
+    color: "#E53935",
+    fontSize: 13,
+    marginTop: -6,
+    marginBottom: 10,
+    textAlign: "left",
+    fontFamily: "SFCompactRounded-Regular",
   },
 });
