@@ -11,7 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import HeaderWithBack from "../../components/HeaderWithBack";
 import RoleCard from "../../components/RoleCard";
 import NextButton from "../../components/NextButton";
-
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useChildren } from "../../context/ChildrenContext";
 
 const ChooseChildForBudgetScreen = () => {
@@ -62,13 +62,19 @@ const ChooseChildForBudgetScreen = () => {
                 isSingleChild && styles.centerSingleCard,
               ]}
             >
-              {childrenList.map((child, index) => (
+              {childrenList.map((child) => (
                 <RoleCard
-                  key={index}
-                  title={child.name}
-                  iconName="emoticon-happy-outline"
-                  isSelected={selectedChildId === index}
-                  onPress={() => setSelectedChildId(index)}
+                  key={child.id}
+                  title={child.name.split(" ")[0]}
+                  icon={
+                    <MaterialCommunityIcons
+                      name="emoticon-happy-outline"
+                      size={48}
+                      color="#7D7D7D"
+                    />
+                  }
+                  isSelected={selectedChildId === child.id}
+                  onPress={() => setSelectedChildId(child.id)}
                 />
               ))}
             </View>

@@ -1,98 +1,105 @@
-// components/RoleCard.js
-
 import React from "react";
-import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const RoleCard = ({ title, iconName, isSelected, onPress }) => {
+const RoleCard = ({
+  title,
+  icon,
+  iconName,
+  iconSize = 40,
+  isSelected,
+  onPress,
+}) => {
   return (
     <TouchableOpacity
-      style={[styles.card, isSelected && styles.cardSelected]}
-      onPress={onPress}
+      style={[styles.card, isSelected && styles.selectedCard]}
       activeOpacity={0.7}
+      onPress={onPress}
     >
-      <Text style={styles.title}>{title}</Text>
-
-      {/* Icon Area - Using MaterialCommunityIcons for simplicity */}
-      {/* You can replace this with your parent.svg or other image component */}
+      {/* ICON */}
       <View style={styles.iconWrapper}>
-        <MaterialCommunityIcons
-          name={iconName}
-          size={55}
-          color={styles.title.color} // Use the same color as text
-        />
-        {/* If using your own image: */}
-        {/* <Image source={iconSource} style={styles.imageIcon} /> */}
+        {icon ? (
+          icon
+        ) : iconName ? (
+          <MaterialCommunityIcons
+            name={iconName}
+            size={iconSize}
+            color="#7D7D7D"
+          />
+        ) : null}
       </View>
 
-      {/* Custom Radio Button Indicator */}
-      <View style={styles.radioOuter}>
-        {isSelected && <View style={styles.radioInner} />}
+      {/* TITLE */}
+      <Text style={styles.title} allowFontScaling={false}>
+        {title}
+      </Text>
+
+      {/* RADIO INDICATOR */}
+      <View style={styles.radioWrapper}>
+        <View
+          style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}
+        >
+          {isSelected && <View style={styles.radioInner} />}
+        </View>
       </View>
     </TouchableOpacity>
   );
 };
 
+export default RoleCard;
+
 const styles = StyleSheet.create({
-  // --- CARD STYLING ---
   card: {
-    backgroundColor: "#C0EAF0", // Light blue background matching the image
-    borderRadius: 15,
-    padding: 20,
-    width: 140, // Fixed width for consistent layout
-    height: 200, // Fixed height
+    width: 140,
+    height: 200,
+    backgroundColor: "#C0EAF0",
+    borderRadius: 20,
     alignItems: "center",
-    justifyContent: "space-between",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-    borderWidth: 2,
-    borderColor: "#C0EAF0",
-  },
-  cardSelected: {
-    borderColor: "#7D7D7D", // A noticeable border color when selected
+    justifyContent: "center",
+    padding: 16,
+    position: "relative",
   },
 
-  // --- CONTENT STYLING ---
-  title: {
-  fontSize: 18,
-  fontWeight: '600',
-  color: '#7D7D7D',
-  marginBottom: 10,
-  fontFamily: 'SFCompactRounded-Bold', // <-- add this
-},
+  selectedCard: {
+    borderWidth: 2,
+    borderColor: "#228390",
+  },
 
   iconWrapper: {
-    flex: 1, // Allows the icon to take up the middle space
-    justifyContent: "center",
-    alignItems: "center",
+    marginBottom: 14,
   },
-  // If you use an Image component, use this style:
-  // imageIcon: {
-  //   width: 60,
-  //   height: 60,
-  //   resizeMode: 'contain'
-  // },
 
-  // --- RADIO BUTTON STYLING ---
+  title: {
+    fontSize: 17,
+    fontFamily: "SFCompactRounded-Semibold",
+    color: "#7D7D7D",
+  },
+
+  /* RADIO */
+  radioWrapper: {
+    position: "absolute",
+    bottom: 14,
+  },
+
   radioOuter: {
-    height: 24,
-    width: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 2,
     borderColor: "#7D7D7D",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 15,
+    backgroundColor: "#FFFFFF",
   },
+
+  radioOuterSelected: {
+    borderColor: "#228390",
+  },
+
   radioInner: {
-    height: 12,
-    width: 12,
-    borderRadius: 6,
-    backgroundColor: "#7D7D7D", // Solid circle when selected
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#228390",
   },
 });
-
-export default RoleCard;

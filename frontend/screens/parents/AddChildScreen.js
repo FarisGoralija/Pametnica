@@ -58,6 +58,7 @@ const AddChildScreen = () => {
     if (!name || !isEmailValid || !isPasswordValid) return;
 
     addChild({
+      id: Date.now().toString(), // ✅ unique id
       name,
       email,
     });
