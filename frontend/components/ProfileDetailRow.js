@@ -1,13 +1,13 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 
-const ProfileDetailRow = ({
-  label,
-  value,
-  leftIcon,
-  rightIcon,
-  onPress,
-}) => {
+const ProfileDetailRow = ({ label, value, leftIcon, rightIcon, onPress }) => {
   return (
     <TouchableOpacity
       activeOpacity={onPress ? 0.7 : 1}
@@ -18,8 +18,21 @@ const ProfileDetailRow = ({
         {leftIcon}
 
         <View style={styles.textContainer}>
-          <Text style={styles.label}>{label}</Text>
-          <Text style={styles.value}>{value}</Text>
+          <Text
+            style={styles.label}
+            allowFontScaling={false}
+            includeFontPadding={false}
+          >
+            {label}
+          </Text>
+
+          <Text
+            style={styles.value}
+            allowFontScaling={false}
+            includeFontPadding={false}
+          >
+            {value}
+          </Text>
         </View>
       </View>
 
@@ -35,7 +48,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#C0EAF0",
     borderRadius: 10,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+
+    // 🔥 reduced vertical padding
+    paddingVertical: Platform.OS === "android" ? 8 : 12,
+
     marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
@@ -54,6 +70,7 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 12,
+    lineHeight: 14, // 🔥 VERY IMPORTANT
     fontFamily: "SFCompactRounded-Regular",
     color: "#7D7D7D",
     marginBottom: 2,
@@ -61,6 +78,7 @@ const styles = StyleSheet.create({
 
   value: {
     fontSize: 16,
+    lineHeight: 18, // 🔥 VERY IMPORTANT
     fontFamily: "SFCompactRounded-Semibold",
     color: "#4A4A4A",
   },
