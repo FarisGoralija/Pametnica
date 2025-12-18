@@ -11,14 +11,19 @@ const ListsCard = ({
 }) => {
   return (
     <View style={[styles.card, { backgroundColor }]}>
-      {icon}
+      {/* TOP LEFT TITLE */}
       <Text style={styles.title}>{title}</Text>
 
-      <Text style={styles.empty}>{emptyText}</Text>
+      {/* CENTER CONTENT */}
+      <View style={styles.center}>
+        {icon}
 
-      <TouchableOpacity style={styles.button} onPress={onCreatePress}>
-        <Text style={styles.buttonText}>{buttonText}</Text>
-      </TouchableOpacity>
+        <Text style={styles.empty}>{emptyText}</Text>
+
+        <TouchableOpacity style={styles.button} onPress={onCreatePress}>
+          <Text style={styles.buttonText}>{buttonText}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -27,32 +32,49 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 22,
     padding: 20,
-    alignItems: "center",
+    height: 260,
+    position: "relative",
     elevation: 3,
   },
+
   title: {
-    fontSize: 18,
+    position: "absolute",
+    top: 16,
+    left: 16,
+    fontSize: 26,
     fontWeight: "700",
     color: "#fff",
-    marginVertical: 12,
   },
+
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 20,
+  },
+
   empty: {
-    fontSize: 13,
+    fontSize: 16,
     color: "#fff",
     opacity: 0.85,
+    marginTop: 12,
     marginBottom: 16,
     textAlign: "center",
+    fontWeight: "600",
   },
+
   button: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderRadius: 20,
   },
+
   buttonText: {
     fontWeight: "600",
+    color: "#000",
   },
 });
 

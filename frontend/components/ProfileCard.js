@@ -53,17 +53,17 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   name: {
-    fontSize: 16,
+    fontSize: 19,
     fontWeight: "600",
     color: "#fff",
   },
   points: {
-    fontSize: 13,
+    fontSize: 17,
     color: "#fff",
     opacity: 0.9,
   },
   balance: {
-    fontSize: 12,
+    fontSize: 15,
     color: "#fff",
     opacity: 0.8,
   },

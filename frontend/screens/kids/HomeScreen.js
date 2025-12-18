@@ -10,18 +10,19 @@ import ListsCard from "../../components/ListsCard";
 const HomeScreen = () => {
   return (
     <View style={styles.container}>
-      {/* TOP CURVE */}
-      <View style={styles.topBackground} />
+      {/* BOTTOM CURVED BACKGROUND */}
+      <View style={styles.bottomWave} />
 
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {/* TITLE */}
         <SafeAreaView edges={["top"]}>
           <Text style={styles.title}>Početna</Text>
         </SafeAreaView>
 
-        {/* PROFILE */}
+        {/* PROFILE CARD */}
         <ProfileCard
           name="Faris Goralija"
           points="50 poena"
@@ -36,12 +37,12 @@ const HomeScreen = () => {
           }
         />
 
-        {/* ACTIONS */}
+        {/* ACTION BUTTONS */}
         <View style={styles.row}>
           <ActionSquare
             title="Dodaj listu"
             backgroundColor="#12C7E5"
-            icon={<MaterialCommunityIcons name="plus" size={32} color="#fff" />}
+            icon={<MaterialCommunityIcons name="plus" size={50} color="#fff" />}
             onPress={() => {}}
           />
 
@@ -53,7 +54,7 @@ const HomeScreen = () => {
             icon={
               <MaterialCommunityIcons
                 name="clipboard-text"
-                size={32}
+                size={45}
                 color="#fff"
               />
             }
@@ -61,7 +62,7 @@ const HomeScreen = () => {
           />
         </View>
 
-        {/* LISTS */}
+        {/* LISTS CARD */}
         <ListsCard
           title="Moje liste"
           emptyText="Tvoje liste su prazne"
@@ -70,7 +71,7 @@ const HomeScreen = () => {
           icon={
             <MaterialCommunityIcons
               name="format-list-bulleted"
-              size={40}
+              size={60}
               color="#fff"
             />
           }
@@ -84,27 +85,27 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#EAF9FB",
+    backgroundColor: "#FFFFFF", // top area stays white
   },
 
-  topBackground: {
+  bottomWave: {
     position: "absolute",
-    top: 0,
+    bottom: 0,
     width: "100%",
-    height: 300, // ⬅️ slightly taller
+    height: "55%", // starts from middle down
     backgroundColor: "#BDEFF4",
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
   },
 
   content: {
     paddingHorizontal: 16,
-    paddingTop: 80, // ⬅️ THIS pushes everything down
-    paddingBottom: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
   },
 
   title: {
-    fontSize: 26,
+    fontSize: 40,
     fontWeight: "700",
     color: "#8EDDDD",
     textAlign: "center",
