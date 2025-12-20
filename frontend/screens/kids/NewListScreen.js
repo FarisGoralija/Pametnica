@@ -79,13 +79,7 @@ const NewListScreen = () => {
               <MaterialCommunityIcons name="pencil" size={30} color="#4A4A4A" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionBtn} activeOpacity={0.8}>
-              <MaterialCommunityIcons
-                name="trash-can"
-                size={30}
-                color="#E53935"
-              />
-            </TouchableOpacity>
+           
           </View>
         </View>
 

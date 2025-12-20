@@ -28,27 +28,31 @@ const AddItemModal = ({ visible, onClose, onAdd }) => {
         style={styles.overlay}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.box}>
-          <Text style={styles.title}>Upišite ime vaše stavke</Text>
+        <View style={styles.modal}>
+          <Text style={styles.title}>Ime stavke</Text>
 
           <View style={styles.inputRow}>
             <TextInput
               value={value}
               onChangeText={setValue}
-              placeholder="Mlijeko"
-              placeholderTextColor="#EAEAEA"
+              placeholder="Upišite ime stavke"
+              placeholderTextColor="#9E9E9E"
               style={styles.input}
               autoFocus
             />
-            <MaterialCommunityIcons name="pencil" size={22} color="#fff" />
+            <MaterialCommunityIcons
+              name="pencil-outline"
+              size={20}
+              color="#9E9E9E"
+            />
           </View>
 
-          <TouchableOpacity style={styles.btn} onPress={handleAdd}>
-            <Text style={styles.btnText}>Uredu</Text>
+          <TouchableOpacity style={styles.button} onPress={handleAdd}>
+            <Text style={styles.buttonText}>Dodaj</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.closeArea} onPress={onClose}>
-            <Text style={styles.closeText}>Zatvori</Text>
+          <TouchableOpacity onPress={onClose} style={styles.cancel}>
+            <Text style={styles.cancelText}>Otkaži</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -65,59 +69,59 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 
-  box: {
+  modal: {
     width: "80%",
-    backgroundColor: "#12C7E5",
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 18,
   },
 
   title: {
-    color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 12,
+    color: "#111",
   },
 
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#7A7A7A",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    marginBottom: 16,
   },
 
   input: {
     flex: 1,
-    color: "#fff",
-    fontSize: 18,
-    paddingVertical: 8,
-  },
-
-  btn: {
-    backgroundColor: "#0BBAD3",
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-
-  btnText: {
-    color: "#fff",
     fontSize: 16,
-    fontWeight: "700",
+    paddingVertical: 10,
+    color: "#111",
   },
 
-  closeArea: {
-    marginTop: 10,
+  button: {
+    backgroundColor: "#12C7E5", // isti accent kao RenameListModal
+    paddingVertical: 14,
+    borderRadius: 14,
     alignItems: "center",
   },
 
-  closeText: {
-    color: "#EAF7F7",
-    fontSize: 14,
+  buttonText: {
+    color: "#fff",
     fontWeight: "600",
+    fontSize: 16,
+  },
+
+  cancel: {
+    marginTop: 12,
+    alignItems: "center",
+  },
+
+  cancelText: {
+    color: "#7D7D7D",
+    fontSize: 14,
+    fontWeight: "500",
   },
 });
 

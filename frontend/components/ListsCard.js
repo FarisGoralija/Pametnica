@@ -26,7 +26,7 @@ const ListsCard = ({
       {/* CONTENT */}
       <View style={styles.center}>
         {lists.length === 0 ? (
-          <>
+          <View style={styles.emptyContainer}>
             {icon}
 
             <Text style={styles.empty}>{emptyText}</Text>
@@ -34,7 +34,7 @@ const ListsCard = ({
             <TouchableOpacity style={styles.button} onPress={onCreatePress}>
               <Text style={styles.buttonText}>{buttonText}</Text>
             </TouchableOpacity>
-          </>
+          </View>
         ) : (
           <View style={styles.listContainer}>
             <ScrollView
@@ -99,6 +99,9 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "700",
     color: "#fff",
+  },
+  emptyContainer: {
+    alignItems: "center",
   },
 
   center: {

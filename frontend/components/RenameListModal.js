@@ -15,10 +15,10 @@ const RenameListModal = ({ visible, onClose, onSave }) => {
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modal}>
-          <Text style={styles.title}>List name</Text>
+          <Text style={styles.title}>Ime liste</Text>
 
           <TextInput
-            placeholder="Enter list name"
+            placeholder="Unesi ime liste"
             value={name}
             onChangeText={setName}
             style={styles.input}
@@ -32,7 +32,7 @@ const RenameListModal = ({ visible, onClose, onSave }) => {
               onClose();
             }}
           >
-            <Text style={styles.buttonText}>Save</Text>
+            <Text style={styles.buttonText}>Spasi</Text>
           </TouchableOpacity>
         </View>
       </View>

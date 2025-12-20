@@ -45,7 +45,11 @@ const ListsScreen = () => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.headerWrapper}>
-        <HeaderWithBack title="Liste" subtitle="" />
+        <HeaderWithBack
+          title="Liste"
+          subtitle=""
+          onBack={() => navigation.navigate("Početna")}
+        />
       </View>
 
       {/* BACKGROUND CURVE */}
