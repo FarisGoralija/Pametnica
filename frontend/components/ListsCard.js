@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const ListsCard = ({
   title,
@@ -8,21 +15,69 @@ const ListsCard = ({
   onCreatePress,
   backgroundColor,
   icon,
+  lists = [],
+  onCardPress,
 }) => {
   return (
     <View style={[styles.card, { backgroundColor }]}>
-      {/* TOP LEFT TITLE */}
+      {/* TITLE */}
       <Text style={styles.title}>{title}</Text>
 
-      {/* CENTER CONTENT */}
+      {/* CONTENT */}
       <View style={styles.center}>
-        {icon}
+        {lists.length === 0 ? (
+          <>
+            {icon}
 
-        <Text style={styles.empty}>{emptyText}</Text>
+            <Text style={styles.empty}>{emptyText}</Text>
 
-        <TouchableOpacity style={styles.button} onPress={onCreatePress}>
-          <Text style={styles.buttonText}>{buttonText}</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={onCreatePress}>
+              <Text style={styles.buttonText}>{buttonText}</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.listContainer}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 4 }}
+            >
+              {lists.map((list) => (
+                <TouchableOpacity
+                  key={list.id}
+                  style={styles.listItem}
+                  activeOpacity={0.85}
+                  onPress={() => onCardPress && onCardPress(list)}
+                >
+                  {/* LEFT ICON */}
+                  <View style={styles.iconBox}>
+                    <MaterialCommunityIcons
+                      name="cart-outline"
+                      size={26}
+                      color="#FFFFFF"
+                    />
+                  </View>
+
+                  {/* TEXT */}
+                  <View style={styles.textWrapper}>
+                    <Text style={styles.listItemTitle}>{list.title}</Text>
+                    <Text style={styles.listItemSubtitle}>
+                      {list.createdAt
+                        ? new Date(list.createdAt).toLocaleDateString()
+                        : "Today"}
+                    </Text>
+                  </View>
+
+                  {/* ARROW */}
+                  <MaterialCommunityIcons
+                    name="chevron-right"
+                    size={28}
+                    color="#4A4A4A"
+                  />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -32,7 +87,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 22,
     padding: 20,
-    height: 260,
+    height: 300, // enough for title + 3 items
     position: "relative",
     elevation: 3,
   },
@@ -48,11 +103,10 @@ const styles = StyleSheet.create({
 
   center: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 20,
+    paddingTop: 70, // space for title
   },
 
+  /* EMPTY STATE */
   empty: {
     fontSize: 16,
     color: "#fff",
@@ -64,8 +118,7 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    flexDirection: "row",
-    alignItems: "center",
+    alignSelf: "center",
     backgroundColor: "#fff",
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -75,6 +128,49 @@ const styles = StyleSheet.create({
   buttonText: {
     fontWeight: "600",
     color: "#000",
+  },
+
+  /* LIST AREA (LIMIT HEIGHT → SCROLL AFTER 3 ITEMS) */
+  listContainer: {
+    maxHeight: 190, // ≈ 3 items
+  },
+
+  /* LIST ITEM */
+  listItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    elevation: 2,
+  },
+
+  iconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#3B82F6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  textWrapper: {
+    flex: 1,
+  },
+
+  listItemTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1F2937",
+  },
+
+  listItemSubtitle: {
+    fontSize: 13,
+    color: "#6B7280",
+    marginTop: 2,
   },
 });
 

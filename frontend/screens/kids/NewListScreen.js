@@ -10,8 +10,17 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import AddItemModal from "../../components/AddItemModal";
+import { useNavigation } from "@react-navigation/native";
+import { useList } from "../../context/ListContext";
+import RenameListModal from "../../components/RenameListModal";
 
 const NewListScreen = () => {
+  const navigation = useNavigation();
+  const { addList } = useList();
+
+  const [listTitle, setListTitle] = useState("Lista 1");
+  const [showRename, setShowRename] = useState(false);
+
   const [showModal, setShowModal] = useState(false);
   const [items, setItems] = useState([]);
 
@@ -19,10 +28,7 @@ const NewListScreen = () => {
     const cleaned = text.trim();
     if (!cleaned) return;
 
-    setItems((prev) => [
-      ...prev,
-      { id: Date.now().toString(), text: cleaned },
-    ]);
+    setItems((prev) => [...prev, { id: Date.now().toString(), text: cleaned }]);
   };
 
   const removeItem = (id) => {
@@ -38,7 +44,16 @@ const NewListScreen = () => {
 
       {/* SEND TO PARENT BUTTON */}
       <View style={styles.sendWrapper}>
-        <TouchableOpacity style={styles.sendButton} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.sendButton}
+          activeOpacity={0.8}
+          onPress={() => {
+            if (items.length === 0) return;
+
+            addList(listTitle, items);
+            navigation.goBack();
+          }}
+        >
           <MaterialCommunityIcons
             name="send"
             size={16}
@@ -53,10 +68,14 @@ const NewListScreen = () => {
       <View style={styles.card}>
         {/* CARD HEADER */}
         <View style={styles.cardHeader}>
-          <Text style={styles.listTitle}>Lista 1</Text>
+          <Text style={styles.listTitle}>{listTitle}</Text>
 
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.actionBtn} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              activeOpacity={0.8}
+              onPress={() => setShowRename(true)}
+            >
               <MaterialCommunityIcons name="pencil" size={30} color="#4A4A4A" />
             </TouchableOpacity>
 
@@ -101,7 +120,9 @@ const NewListScreen = () => {
                 />
               </View>
 
-              <Text style={styles.emptyText}>Nemate nijednu stavku na listi</Text>
+              <Text style={styles.emptyText}>
+                Nemate nijednu stavku na listi
+              </Text>
             </>
           ) : (
             <View style={{ width: "100%" }}>
@@ -153,6 +174,14 @@ const NewListScreen = () => {
         visible={showModal}
         onClose={() => setShowModal(false)}
         onAdd={addItem}
+      />
+
+      <RenameListModal
+        visible={showRename}
+        onClose={() => setShowRename(false)}
+        onSave={(name) => {
+          if (name.trim()) setListTitle(name);
+        }}
       />
     </View>
   );

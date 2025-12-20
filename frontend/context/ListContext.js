@@ -3,24 +3,23 @@ import React, { createContext, useContext, useState } from "react";
 const ListContext = createContext();
 
 export const ListProvider = ({ children }) => {
-  const [items, setItems] = useState([]);
+  const [lists, setLists] = useState([]);
 
-  const addItem = (text) => {
-    setItems((prev) => [
+  const addList = (title, items) => {
+    setLists((prev) => [
       ...prev,
       {
         id: Date.now().toString(),
-        text,
+        title,
+        items,
+        status: "active",
+        createdAt: new Date(),
       },
     ]);
   };
 
-  const removeItem = (id) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
-  };
-
   return (
-    <ListContext.Provider value={{ items, addItem, removeItem }}>
+    <ListContext.Provider value={{ lists, addList }}>
       {children}
     </ListContext.Provider>
   );

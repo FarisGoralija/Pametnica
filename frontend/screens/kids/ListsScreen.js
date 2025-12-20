@@ -9,12 +9,16 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-
+import { useList } from "../../context/ListContext";
 import HeaderWithBack from "../../components/HeaderWithBack";
 import ListsCard from "../../components/ListsCard";
 import AddListModal from "../../components/AddListModal";
 
 const ListsScreen = () => {
+  const { lists } = useList();
+  const activeLists = lists.filter((l) => l.status === "active");
+  const waitingLists = lists.filter((l) => l.status === "waiting");
+
   const navigation = useNavigation();
 
   const [activeTab, setActiveTab] = useState("active");
@@ -68,7 +72,6 @@ const ListsScreen = () => {
           />
         </View>
 
-        {/* CONTENT */}
         {activeTab === "active" && (
           <ListsCard
             title="Aktivne liste"
@@ -81,6 +84,10 @@ const ListsScreen = () => {
                 size={60}
                 color="#fff"
               />
+            }
+            lists={activeLists}
+            onCardPress={(list) =>
+              navigation.replace("ListDetailsScreen", { list })
             }
             onCreatePress={() => setShowAddList(true)}
           />
@@ -98,6 +105,10 @@ const ListsScreen = () => {
                 size={60}
                 color="#fff"
               />
+            }
+            lists={waitingLists}
+            onCardPress={(list) =>
+              navigation.replace("ListDetailsScreen", { list })
             }
             onCreatePress={() => setShowAddList(true)}
           />

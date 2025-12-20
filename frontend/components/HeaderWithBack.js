@@ -10,15 +10,23 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-const HeaderWithBack = ({ title, subtitle }) => {
+const HeaderWithBack = ({ title, subtitle, onBack }) => {
   const navigation = useNavigation();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack(); // ✅ custom back behavior
+    } else {
+      navigation.goBack(); // ✅ default behavior
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={handleBack}
           activeOpacity={0.7}
         >
           <Text style={styles.backIcon}>‹</Text>
@@ -58,7 +66,7 @@ const styles = StyleSheet.create({
   backIcon: {
     fontSize: 48,
     color: "#B0E5DD",
-    lineHeight: 48, // 🔥 prevents clipping
+    lineHeight: 48,
   },
 
   textContainer: {

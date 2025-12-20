@@ -7,10 +7,13 @@ import ProfileCard from "../../components/ProfileCard";
 import ActionSquare from "../../components/ActionSquare";
 import ListsCard from "../../components/ListsCard";
 import AddListModal from "../../components/AddListModal";
+import { useList } from "../../context/ListContext";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const { lists } = useList();
   const [showAddList, setShowAddList] = useState(false);
+  const myLists = lists.filter((l) => l.status === "active");
 
   return (
     <View style={styles.container}>
@@ -62,11 +65,14 @@ const HomeScreen = () => {
                 color="#fff"
               />
             }
-            onPress={() => navigation.navigate("Liste")}
+            onPress={() =>
+              navigation.navigate("Liste", {
+                screen: "ListsMain",
+              })
+            }
           />
         </View>
 
-        {/* LISTS CARD */}
         <ListsCard
           title="Moje liste"
           emptyText="Tvoje liste su prazne"
@@ -78,6 +84,13 @@ const HomeScreen = () => {
               size={60}
               color="#fff"
             />
+          }
+          lists={myLists}
+          onCardPress={(list) =>
+            navigation.navigate("Liste", {
+              screen: "ListDetailsScreen",
+              params: { list },
+            })
           }
           onCreatePress={() => setShowAddList(true)}
         />

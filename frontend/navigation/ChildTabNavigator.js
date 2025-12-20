@@ -31,7 +31,6 @@ export default function ChildTabNavigator() {
           shadowRadius: 8,
         },
 
-        // ⬆️ pull icons up slightly
         tabBarIconStyle: {
           marginTop: 12,
         },
@@ -61,7 +60,6 @@ export default function ChildTabNavigator() {
       />
 
       {/* LISTS */}
-      {/* LISTS */}
       <Tab.Screen
         name="Liste"
         component={ListsStackNavigator}
@@ -74,6 +72,17 @@ export default function ChildTabNavigator() {
             />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            // ⛔ stop default behavior (which remembers last screen)
+            e.preventDefault();
+
+            // ✅ ALWAYS open ListsMain (Aktivne / Čekanje)
+            navigation.navigate("Liste", {
+              screen: "ListsMain",
+            });
+          },
+        })}
       />
 
       {/* PROFILE */}
