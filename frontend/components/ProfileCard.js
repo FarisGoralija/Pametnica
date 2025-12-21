@@ -5,22 +5,45 @@ const ProfileCard = ({
   name,
   points,
   balanceLabel,
-  balanceValue,
+  balanceValue, // number, not string
+  maxBalance = 200,
   avatarIcon,
   rightIcon,
   backgroundColor,
 }) => {
+  const percentage = Math.min(balanceValue / maxBalance, 1);
+
+  const getBarColor = () => {
+    if (percentage >= 0.6) return "#4CAF50"; // green
+    if (percentage >= 0.3) return "#FF9800"; // orange
+    return "#F44336"; // red
+  };
+
   return (
     <View style={[styles.card, { backgroundColor }]}>
       <View style={styles.left}>
         <View style={styles.avatar}>{avatarIcon}</View>
 
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.name}>{name}</Text>
           <Text style={styles.points}>{points}</Text>
+
           <Text style={styles.balance}>
-            {balanceLabel}: {balanceValue}
+            {balanceLabel}: {balanceValue} KM
           </Text>
+
+          {/* BAR */}
+          <View style={styles.barContainer}>
+            <View
+              style={[
+                styles.barFill,
+                {
+                  width: `${percentage * 100}%`,
+                  backgroundColor: getBarColor(),
+                },
+              ]}
+            />
+          </View>
         </View>
       </View>
 
@@ -42,6 +65,7 @@ const styles = StyleSheet.create({
   left: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   avatar: {
     width: 48,
@@ -65,7 +89,21 @@ const styles = StyleSheet.create({
   balance: {
     fontSize: 15,
     color: "#fff",
-    opacity: 0.8,
+    opacity: 0.85,
+    marginBottom: 6,
+  },
+
+  /* BAR STYLES */
+  barContainer: {
+    height: 8,
+    width: "100%",
+    backgroundColor: "rgba(255,255,255,0.3)",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  barFill: {
+    height: "100%",
+    borderRadius: 4,
   },
 });
 
