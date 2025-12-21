@@ -9,13 +9,15 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import {
+  useNavigation,
+  useFocusEffect,
+  CommonActions,
+} from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import CustomInput from "../../components/CustomInput";
 import NextButton from "../../components/NextButton";
-import { useFocusEffect } from "@react-navigation/native";
-
 import { useChildren } from "../../context/ChildrenContext";
 
 const AddChildScreen = () => {
@@ -58,13 +60,21 @@ const AddChildScreen = () => {
     if (!name || !isEmailValid || !isPasswordValid) return;
 
     addChild({
-      id: Date.now().toString(), // ✅ unique id
+      id: Date.now().toString(),
       name,
       email,
     });
 
-    navigation.goBack();
+    // ✅ RESET PROFILE STACK (FIXES LOOP)
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: "ProfileParentMain" }],
+      })
+    );
   };
+
+  // ✅ HIDE TAB BAR WHILE ON THIS SCREEN
   useFocusEffect(
     React.useCallback(() => {
       navigation.getParent()?.setOptions({
@@ -188,7 +198,7 @@ const styles = StyleSheet.create({
   form: {
     marginTop: 40,
     alignItems: "center",
-    paddingBottom: 40, // ✅ extra space so last input is visible
+    paddingBottom: 40,
   },
 
   errorText: {
@@ -200,7 +210,8 @@ const styles = StyleSheet.create({
     textAlign: "left",
     fontFamily: "SFCompactRounded-Regular",
   },
+
   buttonSpacer: {
-    marginTop: 16, // ⬅️ adjust (16–32 looks best)
+    marginTop: 16,
   },
 });

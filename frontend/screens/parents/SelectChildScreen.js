@@ -1,8 +1,15 @@
 import React, { useState } from "react";
-import { View, StyleSheet, FlatList, SafeAreaView } from "react-native";
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-import HeaderWithBack from "../../components/HeaderWithBack";
+import HeaderComponent from "../../components/HeaderNoBack";
 import RoleCard from "../../components/RoleCard";
 import NextButton from "../../components/NextButton";
 import { useChildren } from "../../context/ChildrenContext";
@@ -23,42 +30,68 @@ const SelectChildScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <HeaderWithBack
+      {/* HEADER (NO BACK BUTTON) */}
+      <HeaderComponent
         title="Odaberi dijete"
         subtitle="Izaberite dijete za koje želite pregledati liste"
       />
 
-      {/* LIST */}
-      <View style={styles.listWrapper}>
-        <FlatList
-          data={childrenList}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          columnWrapperStyle={styles.column}
-          renderItem={({ item }) => (
-            <RoleCard
-              title={item.name}
-              iconName="emoticon-happy-outline"
-              isSelected={item.id === selectedChildId}
-              onPress={() => setSelectedChildId(item.id)}
-            />
-          )}
-        />
-      </View>
+      {childrenList.length === 0 ? (
+        /* EMPTY STATE */
+        <View style={styles.emptyWrapper}>
+          <Text style={styles.emptyText}>
+            Nemate dodanu djecu. Da biste nastavili, prvo dodajte dijete.
+          </Text>
 
-      {/* ✅ BUTTON — NOW CENTERED & VISIBLE */}
-      <View style={styles.buttonWrapper}>
-        <NextButton
-          title="Nastavi"
-          onPress={handleNext}
-          isDisabled={!selectedChildId}
-        />
-      </View>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() =>
+              navigation.navigate("Profil", {
+                screen: "AddChild",
+              })
+            }
+          >
+            <Text style={styles.addChildText}>Dodaj dijete</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          {/* LIST */}
+          <View style={styles.listWrapper}>
+            <FlatList
+              data={childrenList}
+              keyExtractor={(item) => item.id}
+              numColumns={2}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              columnWrapperStyle={styles.column}
+              renderItem={({ item }) => (
+                <RoleCard
+                  title={item.name}
+                  iconName="emoticon-happy-outline"
+                  isSelected={item.id === selectedChildId}
+                  onPress={() => setSelectedChildId(item.id)}
+                />
+              )}
+            />
+          </View>
+
+          {/* BUTTON */}
+          <View style={styles.buttonWrapper}>
+            <NextButton
+              title="Nastavi"
+              onPress={handleNext}
+              isDisabled={!selectedChildId}
+            />
+          </View>
+        </>
+      )}
     </SafeAreaView>
   );
 };
+
+export default SelectChildScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -66,13 +99,12 @@ const styles = StyleSheet.create({
   },
 
   listWrapper: {
-    flex: 1, // 👈 allows FlatList to scroll
+    flex: 1,
     paddingHorizontal: 24,
-    marginTop: 24,
   },
 
   listContent: {
-    alignItems: "center", // 👈 center RoleCards
+    alignItems: "center",
     paddingBottom: 20,
   },
 
@@ -82,10 +114,31 @@ const styles = StyleSheet.create({
   },
 
   buttonWrapper: {
-    alignItems: "center", // 👈 REQUIRED for fixed-width button
+    alignItems: "center",
     paddingVertical: 16,
     paddingBottom: 150,
   },
-});
 
-export default SelectChildScreen;
+  /* EMPTY STATE */
+  emptyWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+
+  emptyText: {
+    fontSize: 14,
+    fontFamily: "SFCompactRounded-Regular",
+    color: "#7D7D7D",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+
+  addChildText: {
+    marginTop: 12,
+    fontSize: 14,
+    fontFamily: "SFCompactRounded-Semibold",
+    color: "#228390",
+  },
+});
