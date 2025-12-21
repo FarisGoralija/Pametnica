@@ -34,7 +34,7 @@ const HomeScreen = () => {
           name="Faris Goralija"
           points="50 poena"
           balanceLabel="Dostupni novac"
-          balanceValue={200} // 👈 number
+          balanceValue={10} // 👈 number
           maxBalance={200}
           backgroundColor="#12C7E5"
           avatarIcon={

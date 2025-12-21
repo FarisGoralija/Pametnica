@@ -95,11 +95,6 @@ const ProfileDetailsParentScreen = () => {
           }
           onPress={() => {}}
         />
-
-        {/* CHANGE PASSWORD */}
-        <TouchableOpacity activeOpacity={0.7} onPress={() => {}}>
-          <Text style={styles.changePasswordText}>Promijeni šifru</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
