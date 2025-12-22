@@ -5,47 +5,79 @@ const ListContext = createContext();
 export const ListProvider = ({ children }) => {
   const [lists, setLists] = useState([]);
 
-  // ❗ CHILD FLOW — UNCHANGED
-  const addList = (title, items) => {
+  /* =====================================================
+     CHILD SIDE (UNCHANGED)
+     ===================================================== */
+
+  const addList = (title, items = []) => {
     setLists((prev) => [
       ...prev,
       {
         id: Date.now().toString(),
         title,
-        items: items || [],
-        status: "active", // child logic untouched
-        parentApproved: false, // 👈 NEW (parent-only)
+        items, // items created by child
+        status: "active", // do NOT change (child logic)
+        parentApproved: false, // parent-only flag
         createdAt: new Date(),
       },
     ]);
   };
 
-  // ✅ PARENT ONLY
+  /* =====================================================
+     PARENT SIDE ONLY
+     ===================================================== */
+
+  // Approve list (Čekanje → Odobrene)
   const approveList = (listId) => {
     setLists((prev) =>
       prev.map((l) => (l.id === listId ? { ...l, parentApproved: true } : l))
     );
   };
 
-  const deleteItem = (listId, itemId) => {
-    setLists((prev) =>
-      prev.map((l) =>
-        l.id === listId
-          ? { ...l, items: l.items.filter((i) => i.id !== itemId) }
-          : l
-      )
-    );
-  };
-
-  const editItem = (listId, itemId, newName) => {
+  // Add new item to list
+  const addItem = (listId, text) => {
     setLists((prev) =>
       prev.map((l) =>
         l.id === listId
           ? {
               ...l,
-              items: l.items.map((i) =>
-                i.id === itemId ? { ...i, name: newName } : i
+              items: [
+                ...l.items,
+                {
+                  id: Date.now().toString(),
+                  text,
+                },
+              ],
+            }
+          : l
+      )
+    );
+  };
+
+  // Edit item text
+  const editItem = (listId, itemId, newText) => {
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id === listId
+          ? {
+              ...l,
+              items: l.items.map((item) =>
+                item.id === itemId ? { ...item, text: newText } : item
               ),
+            }
+          : l
+      )
+    );
+  };
+
+  // Delete item
+  const deleteItem = (listId, itemId) => {
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id === listId
+          ? {
+              ...l,
+              items: l.items.filter((item) => item.id !== itemId),
             }
           : l
       )
@@ -56,10 +88,15 @@ export const ListProvider = ({ children }) => {
     <ListContext.Provider
       value={{
         lists,
-        addList, // child
-        approveList, // parent
-        deleteItem, // parent
-        editItem, // parent
+
+        // child
+        addList,
+
+        // parent
+        approveList,
+        addItem,
+        editItem,
+        deleteItem,
       }}
     >
       {children}

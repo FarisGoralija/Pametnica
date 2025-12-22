@@ -68,7 +68,7 @@ const ParentListsScreen = () => {
             }
             lists={waitingLists}
             onCardPress={(list) =>
-              navigation.navigate("ParentListDetails", { list })
+              navigation.navigate("ParentListDetails", { listId: list.id })
             }
           />
         )}
@@ -87,7 +87,7 @@ const ParentListsScreen = () => {
             }
             lists={approvedLists}
             onCardPress={(list) =>
-              navigation.navigate("ParentListDetails", { list })
+              navigation.navigate("ParentListDetails", { listId: list.id })
             }
           />
         )}

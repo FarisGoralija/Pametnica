@@ -9,19 +9,28 @@ import {
   TextInput,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
+import AddItemModal from "../../components/AddItemModal";
 import { useList } from "../../context/ListContext";
 
-const ListDetailsScreen = ({ route }) => {
+const ListDetailsScreen = () => {
   const navigation = useNavigation();
-  const { list } = route.params;
+  const route = useRoute();
+  const { listId } = route.params;
 
-  const { deleteItem, editItem, approveList } = useList();
+  const { lists, deleteItem, editItem, approveList, addItem } = useList();
+
+  const list = lists.find((l) => l.id === listId);
 
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
+  const [showAddItem, setShowAddItem] = useState(false);
+
+  if (!list) return null;
+
+  const isApproved = list.parentApproved === true;
 
   const handleSaveList = () => {
     approveList(list.id);
@@ -37,8 +46,21 @@ const ListDetailsScreen = ({ route }) => {
 
       {/* CARD */}
       <View style={styles.card}>
-        {/* TITLE */}
-        <Text style={styles.listTitle}>{list.title}</Text>
+        {/* TITLE ROW */}
+        <View style={styles.titleRow}>
+          <Text style={styles.listTitle}>{list.title}</Text>
+
+          {/* ➕ ADD ITEM (ONLY IF NOT APPROVED) */}
+          {!isApproved && (
+            <TouchableOpacity onPress={() => setShowAddItem(true)}>
+              <MaterialCommunityIcons
+                name="plus-circle"
+                size={32}
+                color="#12C7E5"
+              />
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* ITEMS */}
         <ScrollView
@@ -53,12 +75,14 @@ const ListDetailsScreen = ({ route }) => {
 
               return (
                 <View key={item.id} style={styles.itemRow}>
+                  {/* LEFT ICON */}
                   <MaterialCommunityIcons
-                    name="check-circle-outline"
+                    name={isApproved ? "check-circle" : "check-circle-outline"}
                     size={26}
-                    color="#12C7E5"
+                    color={isApproved ? "#16A34A" : "#12C7E5"}
                   />
 
+                  {/* TEXT / INPUT */}
                   {isEditing ? (
                     <TextInput
                       value={editText}
@@ -67,62 +91,76 @@ const ListDetailsScreen = ({ route }) => {
                       autoFocus
                     />
                   ) : (
-                    <Text style={styles.itemText}>
-                      {item.text || item.name}
-                    </Text>
+                    <Text style={styles.itemText}>{item.text}</Text>
                   )}
 
-                  {/* EDIT */}
-                  {isEditing ? (
-                    <TouchableOpacity
-                      onPress={() => {
-                        editItem(list.id, item.id, editText);
-                        setEditingId(null);
-                      }}
-                    >
-                      <MaterialCommunityIcons
-                        name="check"
-                        size={22}
-                        color="#16A34A"
-                      />
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      onPress={() => {
-                        setEditingId(item.id);
-                        setEditText(item.text || item.name);
-                      }}
-                    >
-                      <MaterialCommunityIcons
-                        name="pencil"
-                        size={22}
-                        color="#555"
-                      />
-                    </TouchableOpacity>
-                  )}
+                  {/* ACTIONS */}
+                  {!isApproved && (
+                    <>
+                      {/* EDIT */}
+                      {isEditing ? (
+                        <TouchableOpacity
+                          onPress={() => {
+                            editItem(list.id, item.id, editText);
+                            setEditingId(null);
+                          }}
+                        >
+                          <MaterialCommunityIcons
+                            name="check"
+                            size={22}
+                            color="#16A34A"
+                          />
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => {
+                            setEditingId(item.id);
+                            setEditText(item.text);
+                          }}
+                        >
+                          <MaterialCommunityIcons
+                            name="pencil"
+                            size={22}
+                            color="#555"
+                          />
+                        </TouchableOpacity>
+                      )}
 
-                  {/* DELETE */}
-                  <TouchableOpacity
-                    onPress={() => deleteItem(list.id, item.id)}
-                    style={{ marginLeft: 12 }}
-                  >
-                    <MaterialCommunityIcons
-                      name="trash-can-outline"
-                      size={22}
-                      color="#DC2626"
-                    />
-                  </TouchableOpacity>
+                      {/* DELETE */}
+                      <TouchableOpacity
+                        onPress={() => deleteItem(list.id, item.id)}
+                        style={{ marginLeft: 12 }}
+                      >
+                        <MaterialCommunityIcons
+                          name="trash-can-outline"
+                          size={22}
+                          color="#DC2626"
+                        />
+                      </TouchableOpacity>
+                    </>
+                  )}
                 </View>
               );
             })
           )}
         </ScrollView>
 
-        {/* SAVE BUTTON */}
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveList}>
-          <Text style={styles.saveText}>Spasi listu</Text>
-        </TouchableOpacity>
+        {/* SAVE BUTTON ONLY IF NOT APPROVED */}
+        {!isApproved && (
+          <TouchableOpacity style={styles.saveButton} onPress={handleSaveList}>
+            <Text style={styles.saveText}>Spasi listu</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {/* ADD ITEM MODAL */}
+      {!isApproved && (
+        <AddItemModal
+          visible={showAddItem}
+          onClose={() => setShowAddItem(false)}
+          onAdd={(text) => addItem(list.id, text)}
+        />
+      )}
     </View>
   );
 };
@@ -146,11 +184,17 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
 
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+
   listTitle: {
     fontSize: 26,
     fontWeight: "800",
     color: "#4A4A4A",
-    marginBottom: 14,
   },
 
   itemsWrapper: {

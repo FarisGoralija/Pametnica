@@ -31,9 +31,11 @@ const ListsCard = ({
 
             <Text style={styles.empty}>{emptyText}</Text>
 
-            <TouchableOpacity style={styles.button} onPress={onCreatePress}>
-              <Text style={styles.buttonText}>{buttonText}</Text>
-            </TouchableOpacity>
+            {buttonText && onCreatePress && (
+              <TouchableOpacity style={styles.button} onPress={onCreatePress}>
+                <Text style={styles.buttonText}>{buttonText}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           <View style={styles.listContainer}>
