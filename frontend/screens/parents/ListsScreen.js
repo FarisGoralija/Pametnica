@@ -19,11 +19,9 @@ const ParentListsScreen = () => {
   const { lists } = useList();
   const [activeTab, setActiveTab] = useState("approved");
 
-  // TEMP logic based on current context
-  const approvedLists = lists.filter((l) => l.status === "active");
+  const waitingLists = lists.filter((l) => l.parentApproved === false);
 
-  // no waiting lists yet
-  const waitingLists = [];
+  const approvedLists = lists.filter((l) => l.parentApproved === true);
 
   return (
     <View style={styles.container}>
