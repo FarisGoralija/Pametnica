@@ -71,6 +71,7 @@ builder.Services.AddScoped<IAuthorizationHandler, ChildSelfHandler>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IChildService, ChildService>();
+builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

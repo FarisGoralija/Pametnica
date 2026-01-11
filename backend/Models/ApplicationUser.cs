@@ -18,6 +18,7 @@ public class ApplicationUser : IdentityUser
     public string? ParentId { get; set; }
     public ApplicationUser? Parent { get; set; }
     public ICollection<ApplicationUser> Children { get; set; } = new List<ApplicationUser>();
+    public ICollection<ShoppingList> ShoppingLists { get; set; } = new List<ShoppingList>();
 
     // Child-only fields
     [Column(TypeName = "decimal(18,2)")]
