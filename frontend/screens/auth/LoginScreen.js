@@ -18,7 +18,7 @@ import { useAuth } from "../../context/AuthContext";
 
 const LoginScreen = ({ navigation, route }) => {
   const role = route?.params?.role || "parent";
-  const { login } = useAuth();
+  const { loginParent, loginChild } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +27,7 @@ const LoginScreen = ({ navigation, route }) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = emailRegex.test(email);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!isEmailValid) {
       console.log("Email format is not valid");
       return;
@@ -38,7 +38,16 @@ const LoginScreen = ({ navigation, route }) => {
       return;
     }
 
-    login(role);
+    try {
+      if (role === "parent") {
+        await loginParent(email, password);
+      } else {
+        await loginChild(email, password);
+      }
+      navigation.navigate("Root");
+    } catch (err) {
+      console.log(err?.response?.data || err.message);
+    }
   };
   const handleForgotPassword = () => {
     navigation.navigate("ForgotPasswordScreen");

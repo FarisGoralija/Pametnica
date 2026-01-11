@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -8,14 +8,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useList } from "../../context/ListContext";
 import HeaderWithBack from "../../components/HeaderWithBack";
 import ListsCard from "../../components/ListsCard";
 import AddListModal from "../../components/AddListModal";
 
 const ListsScreen = () => {
-  const { lists } = useList();
+  const { lists, loadChildLists } = useList();
   const activeLists = lists.filter((l) => l.status === "active");
   const waitingLists = lists.filter((l) => l.status === "waiting");
 
@@ -23,6 +23,12 @@ const ListsScreen = () => {
 
   const [activeTab, setActiveTab] = useState("active");
   const [showAddList, setShowAddList] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadChildLists().catch(() => {});
+    }, [loadChildLists])
+  );
 
   const handleNewList = () => {
     setShowAddList(false);
