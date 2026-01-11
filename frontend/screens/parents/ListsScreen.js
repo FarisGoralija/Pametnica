@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import ListsCard from "../../components/ListsCard";
@@ -16,12 +16,22 @@ import { useList } from "../../context/ListContext";
 
 const ParentListsScreen = () => {
   const navigation = useNavigation();
-  const { lists } = useList();
+  const route = useRoute();
+  const { lists, loadParentLists } = useList();
+  const childId = route.params?.childId;
   const [activeTab, setActiveTab] = useState("approved");
 
   const waitingLists = lists.filter((l) => l.parentApproved === false);
 
   const approvedLists = lists.filter((l) => l.parentApproved === true);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (childId) {
+        loadParentLists(childId).catch(() => {});
+      }
+    }, [childId, loadParentLists])
+  );
 
   return (
     <View style={styles.container}>

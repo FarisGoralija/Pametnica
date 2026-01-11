@@ -21,7 +21,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(u => u.Role).IsRequired().HasMaxLength(20);
 
             entity.Property(u => u.FullName)
-                .HasComputedColumnSql("[FirstName] + ' ' + [LastName]", stored: true);
+                .HasComputedColumnSql("\"FirstName\" || ' ' || \"LastName\"", stored: true);
 
             entity.HasMany(u => u.Children)
                 .WithOne(u => u.Parent)
