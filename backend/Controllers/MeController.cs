@@ -5,6 +5,7 @@ using backend.Models;
 using backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using static backend.Constants.PolicyNames;
 
 namespace backend.Controllers;
