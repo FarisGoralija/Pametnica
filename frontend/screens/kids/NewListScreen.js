@@ -17,6 +17,7 @@ import {
   createShoppingList,
   deleteShoppingListItem,
   submitShoppingList,
+  updateShoppingListTitle,
 } from "../../api/endpoints";
 import { useAuth } from "../../context/AuthContext";
 
@@ -354,8 +355,32 @@ const NewListScreen = () => {
       <RenameListModal
         visible={showRename}
         onClose={() => setShowRename(false)}
-        onSave={(name) => {
-          if (name.trim()) setListTitle(name);
+        initialName={listTitle}
+        onSave={async (name) => {
+          const cleaned = name.trim();
+          if (!cleaned) {
+            setShowRename(false);
+            return;
+          }
+
+          // Update local title
+          setListTitle(cleaned);
+
+          // If list already exists, persist title
+          if (listId && token) {
+            try {
+              setLoadingAction(true);
+              await updateShoppingListTitle(listId, cleaned, token);
+            } catch (err) {
+              setErrorMessage(
+                err?.message || "Ažuriranje naziva liste nije uspjelo."
+              );
+            } finally {
+              setLoadingAction(false);
+            }
+          }
+
+          setShowRename(false);
         }}
       />
     </View>

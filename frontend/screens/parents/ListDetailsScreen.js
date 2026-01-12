@@ -20,6 +20,7 @@ import {
   updateShoppingListItem,
   approveShoppingList,
   rejectShoppingList,
+  addShoppingListItem,
 } from "../../api/endpoints";
 import { useChildren } from "../../context/ChildrenContext";
 
@@ -303,7 +304,7 @@ const ListDetailsScreen = () => {
           onAdd={(text) => {
             const cleaned = text?.trim();
             if (!cleaned) return;
-            updateShoppingListItem(list.id, "new", cleaned, token)
+            addShoppingListItem(list.id, cleaned, token)
               .then(() => {
                 setShowAddItem(false);
                 setAddingText("");
@@ -431,6 +432,7 @@ const styles = StyleSheet.create({
 
   actionsColumn: {
     gap: 12,
+    marginTop: 12,
   },
 
   addItemButton: {

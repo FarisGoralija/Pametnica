@@ -18,6 +18,8 @@ import {
 import HeaderWithBack from "../../components/HeaderWithBack";
 import ListsCard from "../../components/ListsCard";
 import AddListModal from "../../components/AddListModal";
+import ConfirmDeleteModal from "../../components/ConfirmDeleteModal";
+import { deleteShoppingList } from "../../api/endpoints";
 
 const ListsScreen = () => {
   const navigation = useNavigation();
@@ -30,6 +32,8 @@ const ListsScreen = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [listToDelete, setListToDelete] = useState(null);
 
   const normalizeList = (list) => {
     if (!list) return null;
@@ -97,6 +101,28 @@ const ListsScreen = () => {
     setRefreshing(false);
   };
 
+  const confirmDelete = (listId) => {
+    setListToDelete(listId);
+    setDeleteModalVisible(true);
+  };
+
+  const handleDelete = async () => {
+    if (!listToDelete || !token) {
+      setDeleteModalVisible(false);
+      return;
+    }
+    try {
+      await deleteShoppingList(listToDelete, token);
+      setActiveLists((prev) => prev.filter((l) => l.id !== listToDelete));
+      setPendingLists((prev) => prev.filter((l) => l.id !== listToDelete));
+    } catch (err) {
+      setErrorMessage(err?.message || "Brisanje liste nije uspjelo.");
+    } finally {
+      setDeleteModalVisible(false);
+      setListToDelete(null);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -157,6 +183,18 @@ const ListsScreen = () => {
             onCardPress={(list) =>
               navigation.replace("ListDetailsScreen", { list })
             }
+            renderExtraAction={(list) => (
+              <TouchableOpacity
+                onPress={() => confirmDelete(list.id)}
+                style={{ paddingHorizontal: 8, paddingVertical: 4 }}
+              >
+                <MaterialCommunityIcons
+                  name="trash-can-outline"
+                  size={22}
+                  color="#E53935"
+                />
+              </TouchableOpacity>
+            )}
             onCreatePress={() => setShowAddList(true)}
           />
         ) : (
@@ -176,6 +214,18 @@ const ListsScreen = () => {
             onCardPress={(list) =>
               navigation.replace("ListDetailsScreen", { list })
             }
+            renderExtraAction={(list) => (
+              <TouchableOpacity
+                onPress={() => confirmDelete(list.id)}
+                style={{ paddingHorizontal: 8, paddingVertical: 4 }}
+              >
+                <MaterialCommunityIcons
+                  name="trash-can-outline"
+                  size={22}
+                  color="#E53935"
+                />
+              </TouchableOpacity>
+            )}
             onCreatePress={() => setShowAddList(true)}
           />
         )}
@@ -185,6 +235,12 @@ const ListsScreen = () => {
       <AddListModal
         visible={showAddList}
         onClose={() => setShowAddList(false)}
+      />
+
+      <ConfirmDeleteModal
+        visible={deleteModalVisible}
+        onCancel={() => setDeleteModalVisible(false)}
+        onConfirm={handleDelete}
       />
     </View>
   );

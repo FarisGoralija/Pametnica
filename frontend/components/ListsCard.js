@@ -17,6 +17,7 @@ const ListsCard = ({
   icon,
   lists = [],
   onCardPress,
+  renderExtraAction,
 }) => {
   return (
     <View style={[styles.card, { backgroundColor }]}>
@@ -69,12 +70,16 @@ const ListsCard = ({
                     </Text>
                   </View>
 
-                  {/* ARROW */}
-                  <MaterialCommunityIcons
-                    name="chevron-right"
-                    size={28}
-                    color="#4A4A4A"
-                  />
+                  {/* EXTRA ACTION (optional) */}
+                  {renderExtraAction ? (
+                    renderExtraAction(list)
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="chevron-right"
+                      size={28}
+                      color="#4A4A4A"
+                    />
+                  )}
                 </TouchableOpacity>
               ))}
             </ScrollView>

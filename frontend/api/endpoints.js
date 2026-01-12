@@ -332,6 +332,29 @@ export async function submitShoppingList(listId, token) {
   return data;
 }
 
+export async function deleteShoppingList(listId, token) {
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(
+    `${endpoints.shoppingLists}/${encodeURIComponent(listId)}`,
+    {
+      method: "DELETE",
+      headers,
+    }
+  );
+
+  if (!response.ok) {
+    const data = await parseJsonSafely(response);
+    const message =
+      (data && typeof data === "object" && (data.error || data.message)) ||
+      (typeof data === "string" ? data : null) ||
+      "Brisanje liste nije uspjelo.";
+    const prefix = response.status ? `${response.status}: ` : "";
+    throw new Error(`${prefix}${message}`);
+  }
+}
+
 export async function getChildActiveLists(token) {
   const headers = {};
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -347,6 +370,34 @@ export async function getChildActiveLists(token) {
       (data && typeof data === "object" && (data.error || data.message)) ||
       (typeof data === "string" ? data : null) ||
       "Učitavanje aktivnih listi nije uspjelo.";
+    const prefix = response.status ? `${response.status}: ` : "";
+    throw new Error(`${prefix}${message}`);
+  }
+
+  return data;
+}
+
+export async function updateShoppingListTitle(listId, title, token) {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(
+    `${endpoints.shoppingLists}/${encodeURIComponent(listId)}/title`,
+    {
+      method: "PUT",
+      headers,
+      body: JSON.stringify({ title }),
+    }
+  );
+
+  const data = await parseJsonSafely(response);
+  if (!response.ok) {
+    const message =
+      (data && typeof data === "object" && (data.error || data.message)) ||
+      (typeof data === "string" ? data : null) ||
+      "Ažuriranje naziva liste nije uspjelo.";
     const prefix = response.status ? `${response.status}: ` : "";
     throw new Error(`${prefix}${message}`);
   }

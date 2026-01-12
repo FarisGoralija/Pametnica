@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,14 +8,25 @@ import {
   StyleSheet,
 } from "react-native";
 
-const RenameListModal = ({ visible, onClose, onSave }) => {
-  const [name, setName] = useState("");
+const RenameListModal = ({ visible, onClose, onSave, initialName = "" }) => {
+  const [name, setName] = useState(initialName);
+
+  useEffect(() => {
+    if (visible) {
+      setName(initialName || "");
+    }
+  }, [visible, initialName]);
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modal}>
-          <Text style={styles.title}>Ime liste</Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.title}>Ime liste</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+              <Text style={styles.closeText}>✕</Text>
+            </TouchableOpacity>
+          </View>
 
           <TextInput
             placeholder="Unesi ime liste"
@@ -28,8 +39,6 @@ const RenameListModal = ({ visible, onClose, onSave }) => {
             style={styles.button}
             onPress={() => {
               onSave(name);
-              setName("");
-              onClose();
             }}
           >
             <Text style={styles.buttonText}>Spasi</Text>
@@ -53,7 +62,15 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 18,
   },
-  title: { fontSize: 18, fontWeight: "700", marginBottom: 10 },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  title: { fontSize: 18, fontWeight: "700" },
+  closeBtn: { padding: 6 },
+  closeText: { fontSize: 18, fontWeight: "700", color: "#444" },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
