@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { View, StyleSheet, ScrollView, Text } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import ProfileCard from "../../components/ProfileCard";
 import ActionSquare from "../../components/ActionSquare";
 import ListsCard from "../../components/ListsCard";
@@ -11,15 +11,9 @@ import { useList } from "../../context/ListContext";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const { lists, loadChildLists } = useList();
+  const { lists } = useList();
   const [showAddList, setShowAddList] = useState(false);
   const myLists = lists.filter((l) => l.status === "active");
-
-  useFocusEffect(
-    useCallback(() => {
-      loadChildLists().catch(() => {});
-    }, [loadChildLists])
-  );
 
   return (
     <View style={styles.container}>

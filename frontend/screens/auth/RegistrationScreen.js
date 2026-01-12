@@ -3,7 +3,6 @@ import { View, StyleSheet, Text, Platform } from "react-native";
 import HeaderWithBack from "../../components/HeaderWithBack";
 import CustomInput from "../../components/CustomInput";
 import NextButton from "../../components/NextButton";
-import { useAuth } from "../../context/AuthContext";
 
 const RegistrationScreen = () => {
   const [firstName, setFirstName] = useState("");
@@ -11,7 +10,6 @@ const RegistrationScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const { registerParent } = useAuth();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = emailRegex.test(email);
@@ -19,14 +17,10 @@ const RegistrationScreen = () => {
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
   const isPasswordValid = passwordRegex.test(password);
 
-  const handleCreateAccount = async () => {
+  const handleCreateAccount = () => {
     setSubmitted(true);
     if (!firstName || !lastName || !isEmailValid || !isPasswordValid) return;
-    try {
-      await registerParent({ firstName, lastName, email, password });
-    } catch (err) {
-      console.log(err?.response?.data || err.message);
-    }
+    console.log("Account created successfully");
   };
 
   return (

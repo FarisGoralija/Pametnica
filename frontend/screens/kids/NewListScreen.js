@@ -50,9 +50,8 @@ const NewListScreen = () => {
           onPress={() => {
             if (items.length === 0) return;
 
-            addList({ title: listTitle, items, type: 0 }).finally(() =>
-              navigation.goBack()
-            );
+            addList(listTitle, items);
+            navigation.goBack();
           }}
         >
           <MaterialCommunityIcons
