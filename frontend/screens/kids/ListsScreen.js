@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -6,39 +6,95 @@ import {
   Platform,
   Text,
   TouchableOpacity,
+  RefreshControl,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { useList } from "../../context/ListContext";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useAuth } from "../../context/AuthContext";
+import {
+  getChildActiveLists,
+  getChildPendingLists,
+} from "../../api/endpoints";
 import HeaderWithBack from "../../components/HeaderWithBack";
 import ListsCard from "../../components/ListsCard";
 import AddListModal from "../../components/AddListModal";
 
 const ListsScreen = () => {
-  const { lists } = useList();
-  const activeLists = lists.filter((l) => l.status === "active");
-  const waitingLists = lists.filter((l) => l.status === "waiting");
-
   const navigation = useNavigation();
+  const { token } = useAuth();
 
   const [activeTab, setActiveTab] = useState("active");
   const [showAddList, setShowAddList] = useState(false);
+  const [activeLists, setActiveLists] = useState([]);
+  const [pendingLists, setPendingLists] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleNewList = () => {
-    setShowAddList(false);
-
-    // Smooth modal close + navigation (iOS & Android safe)
-    requestAnimationFrame(() => {
-      navigation.navigate("NewListScreen"); // 🔁 make sure this route exists
-    });
+  const normalizeList = (list) => {
+    if (!list) return null;
+    const items =
+      list.items ||
+      list.Items ||
+      [];
+    return {
+      id: list.id || list.Id,
+      title: list.title || list.Title || "Lista",
+      status: list.status || list.Status,
+      type: list.type || list.Type,
+      items: Array.isArray(items)
+        ? items.map((it) => ({
+            id: it.id || it.Id,
+            text:
+              it.text ||
+              it.Text ||
+              it.name ||
+              it.Name ||
+              "",
+          }))
+        : [],
+    };
   };
 
-  const handleUrgentList = () => {
-    setShowAddList(false);
+  const fetchLists = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    setErrorMessage("");
+    try {
+      const [activeRes, pendingRes] = await Promise.all([
+        getChildActiveLists(token),
+        getChildPendingLists(token),
+      ]);
+      setActiveLists(
+        Array.isArray(activeRes)
+          ? activeRes.map((l) => normalizeList(l)).filter(Boolean)
+          : []
+      );
+      setPendingLists(
+        Array.isArray(pendingRes)
+          ? pendingRes.map((l) => normalizeList(l)).filter(Boolean)
+          : []
+      );
+    } catch (err) {
+      setErrorMessage(
+        err?.message || "Neuspješno učitavanje listi. Pokušajte ponovo."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
-    requestAnimationFrame(() => {
-      navigation.navigate("UrgentListScreen"); // 🔁 make sure this route exists
-    });
+  useFocusEffect(
+    useCallback(() => {
+      fetchLists();
+    }, [fetchLists])
+  );
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    await fetchLists();
+    setRefreshing(false);
   };
 
   return (
@@ -58,6 +114,9 @@ const ListsScreen = () => {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* TABS */}
         <View style={styles.tabs}>
@@ -76,7 +135,12 @@ const ListsScreen = () => {
           />
         </View>
 
-        {activeTab === "active" && (
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
+        {loading && activeLists.length === 0 && pendingLists.length === 0 ? (
+          <Text style={styles.loadingText}>Učitavanje...</Text>
+        ) : activeTab === "active" ? (
           <ListsCard
             title="Aktivne liste"
             emptyText="Tvoje liste su prazne"
@@ -95,9 +159,7 @@ const ListsScreen = () => {
             }
             onCreatePress={() => setShowAddList(true)}
           />
-        )}
-
-        {activeTab === "waiting" && (
+        ) : (
           <ListsCard
             title="Liste na čekanju"
             emptyText="Nema lista na čekanju"
@@ -110,7 +172,7 @@ const ListsScreen = () => {
                 color="#fff"
               />
             }
-            lists={waitingLists}
+            lists={pendingLists}
             onCardPress={(list) =>
               navigation.replace("ListDetailsScreen", { list })
             }
@@ -123,8 +185,6 @@ const ListsScreen = () => {
       <AddListModal
         visible={showAddList}
         onClose={() => setShowAddList(false)}
-        onNewList={handleNewList}
-        onUrgentList={handleUrgentList}
       />
     </View>
   );
@@ -206,6 +266,20 @@ const styles = StyleSheet.create({
 
   activeTabText: {
     color: "#FFFFFF",
+  },
+
+  loadingText: {
+    textAlign: "center",
+    color: "#7D7D7D",
+    fontSize: 14,
+    marginBottom: 12,
+  },
+
+  errorText: {
+    textAlign: "center",
+    color: "#E53935",
+    fontSize: 14,
+    marginBottom: 12,
   },
 });
 

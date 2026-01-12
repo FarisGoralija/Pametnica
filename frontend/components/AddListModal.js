@@ -8,8 +8,14 @@ import {
   Animated,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
-const AddListModal = ({ visible, onClose, onNewList, onUrgentList }) => {
+const LIST_TYPE_NORMAL = 1; // UI value
+const LIST_TYPE_EMERGENCY = 2; // UI value
+
+const AddListModal = ({ visible, onClose }) => {
+  const navigation = useNavigation();
+
   const slideAnim = useRef(new Animated.Value(300)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -33,6 +39,18 @@ const AddListModal = ({ visible, onClose, onNewList, onUrgentList }) => {
     }
   }, [visible]);
 
+  const startList = (listType) => {
+    onClose?.();
+    navigation.navigate("Liste", {
+      screen: "NewListScreen",
+      params: {
+        listId: null,
+        listTitle: listType === LIST_TYPE_EMERGENCY ? "Hitna lista" : "Nova lista",
+        listType,
+      },
+    });
+  };
+
   return (
     <Modal transparent visible={visible} animationType="none">
       {/* BACKDROP */}
@@ -53,14 +71,14 @@ const AddListModal = ({ visible, onClose, onNewList, onUrgentList }) => {
           icon="plus"
           label="Nova lista"
           color="#12C7E5"
-          onPress={onNewList}
+          onPress={() => startList(LIST_TYPE_NORMAL)}
         />
 
         <ActionButton
           icon="alert-circle"
           label="Hitna lista"
           color="#FF6B6B"
-          onPress={onUrgentList}
+          onPress={() => startList(LIST_TYPE_EMERGENCY)}
         />
 
         <ActionButton
@@ -75,7 +93,11 @@ const AddListModal = ({ visible, onClose, onNewList, onUrgentList }) => {
 };
 
 const ActionButton = ({ icon, label, onPress, color }) => (
-  <TouchableOpacity style={styles.action} onPress={onPress}>
+  <TouchableOpacity
+    style={styles.action}
+    onPress={onPress}
+    activeOpacity={0.8}
+  >
     <View style={[styles.iconWrap, { backgroundColor: color }]}>
       <MaterialCommunityIcons name={icon} size={26} color="#fff" />
     </View>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -10,29 +10,187 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import AddItemModal from "../../components/AddItemModal";
-import { useNavigation } from "@react-navigation/native";
-import { useList } from "../../context/ListContext";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import RenameListModal from "../../components/RenameListModal";
+import {
+  addShoppingListItem,
+  createShoppingList,
+  deleteShoppingListItem,
+  submitShoppingList,
+} from "../../api/endpoints";
+import { useAuth } from "../../context/AuthContext";
 
 const NewListScreen = () => {
   const navigation = useNavigation();
-  const { addList } = useList();
+  const route = useRoute();
+  const { token } = useAuth();
 
-  const [listTitle, setListTitle] = useState("Lista 1");
+  const [listId, setListId] = useState(route?.params?.listId || null);
+  const [listTitle, setListTitle] = useState(
+    route?.params?.listTitle || "Lista 1"
+  );
+  const [listType, setListType] = useState(route?.params?.listType || 1);
   const [showRename, setShowRename] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [items, setItems] = useState([]);
+  const [loadingAction, setLoadingAction] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const nextListId = route?.params?.listId || null;
+    const nextTitle = route?.params?.listTitle || "Lista 1";
+    const nextType = route?.params?.listType || 1;
+
+    setListId(nextListId);
+    setListTitle(nextTitle);
+    setListType(nextType);
+    setItems([]); // reset items for a fresh list
+    setErrorMessage("");
+  }, [route?.params]);
+
+  const ensureBackendList = async () => {
+    if (listId) return listId;
+    const created = await createShoppingList(
+      { title: listTitle, listType },
+      token
+    );
+    const newId = created?.id;
+    if (!newId) {
+      throw new Error("Nije moguće kreirati listu. Pokušajte ponovo.");
+    }
+    setListId(newId);
+    if (created?.title) setListTitle(created.title);
+    return newId;
+  };
+
+  // For emergency lists, create immediately so they are active
+  useEffect(() => {
+    if (listType === 2 && !listId && token) {
+      setLoadingAction(true);
+      ensureBackendList()
+        .catch((err) =>
+          setErrorMessage(err?.message || "Neuspješno kreiranje liste.")
+        )
+        .finally(() => setLoadingAction(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listType, listId, token]);
 
   const addItem = (text) => {
     const cleaned = text.trim();
     if (!cleaned) return;
 
+    // Emergency lists: push items to backend immediately
+    if (listType === 2) {
+      if (!token) {
+        setErrorMessage("Nedostaje autentifikacija. Pokušajte ponovo.");
+        return;
+      }
+      if (loadingAction) return;
+
+      setLoadingAction(true);
+      setErrorMessage("");
+
+      ensureBackendList()
+        .then((id) => addShoppingListItem(id, cleaned, token))
+        .then((result) => {
+          if (result && Array.isArray(result.items)) {
+            setItems(
+              result.items.map((i) => ({
+                id: i.id?.toString(),
+                text: i.name,
+              }))
+            );
+          } else if (result && result.id) {
+            setItems((prev) => [
+              ...prev,
+              { id: result.id?.toString(), text: result.name || cleaned },
+            ]);
+          } else {
+            setItems((prev) => [
+              ...prev,
+              { id: Date.now().toString(), text: cleaned },
+            ]);
+          }
+        })
+        .catch((err) => {
+          const msg =
+            err?.message || "Dodavanje stavke nije uspjelo. Pokušajte ponovo.";
+          setErrorMessage(msg);
+        })
+        .finally(() => setLoadingAction(false));
+
+      return;
+    }
+
+    // Normal list: local items until submit
     setItems((prev) => [...prev, { id: Date.now().toString(), text: cleaned }]);
   };
 
   const removeItem = (id) => {
+    if (listType === 2 && listId && token) {
+      // best-effort backend removal for emergency lists
+      deleteShoppingListItem(listId, id, token).catch(() => {});
+    }
     setItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const handleSubmit = () => {
+    // Normal lists only; emergency handled elsewhere
+    if (listType === 2) {
+      navigation.goBack();
+      return;
+    }
+    if (!token) {
+      setErrorMessage("Nedostaje autentifikacija. Pokušajte ponovo.");
+      return;
+    }
+    if (items.length === 0) {
+      setErrorMessage("Dodajte barem jednu stavku prije slanja.");
+      return;
+    }
+    if (loadingAction) return;
+
+    setLoadingAction(true);
+    setErrorMessage("");
+
+    let createdListId = listId;
+
+    const ensureList = async () => {
+      if (createdListId) return createdListId;
+      const created = await createShoppingList(
+        { title: listTitle, listType },
+        token
+      );
+      const newId = created?.id;
+      if (!newId) {
+        throw new Error("Nije moguće kreirati listu. Pokušajte ponovo.");
+      }
+      setListId(newId);
+      if (created?.title) setListTitle(created.title);
+      return newId;
+    };
+
+    const submitFlow = async () => {
+      const id = await ensureList();
+      // Add items to backend
+      for (const item of items) {
+        await addShoppingListItem(id, item.text, token);
+      }
+      await submitShoppingList(id, token);
+      setItems([]); // clear local items after successful submit
+      setListId(null);
+      navigation.goBack();
+    };
+
+    submitFlow()
+      .catch((err) => {
+        const msg =
+          err?.message || "Slanje liste nije uspjelo. Pokušajte ponovo.";
+        setErrorMessage(msg);
+      })
+      .finally(() => setLoadingAction(false));
   };
 
   return (
@@ -42,26 +200,45 @@ const NewListScreen = () => {
         <HeaderWithBack title="Nova Lista" subtitle="" />
       </View>
 
-      {/* SEND TO PARENT BUTTON */}
-      <View style={styles.sendWrapper}>
+      {/* ACTIONS ROW */}
+      <View style={styles.actionsRow}>
         <TouchableOpacity
-          style={styles.sendButton}
+          style={[
+            styles.sendButton,
+            listType !== 2 &&
+              (items.length === 0 || loadingAction) &&
+              styles.sendButtonDisabled,
+          ]}
           activeOpacity={0.8}
-          onPress={() => {
-            if (items.length === 0) return;
-
-            addList(listTitle, items);
-            navigation.goBack();
-          }}
+          onPress={listType === 2 ? () => navigation.goBack() : handleSubmit}
+          disabled={listType !== 2 && (items.length === 0 || loadingAction)}
         >
           <MaterialCommunityIcons
-            name="send"
+            name={listType === 2 ? "check" : "send"}
             size={16}
             color="#FFFFFF"
             style={{ marginRight: 6 }}
           />
-          <Text style={styles.sendText}>Pošalji roditelju</Text>
+          <Text style={styles.sendText}>
+            {listType === 2 ? "Dodaj listu" : "Pošalji roditelju"}
+          </Text>
         </TouchableOpacity>
+
+        {listType === 2 && (
+          <TouchableOpacity
+            style={[styles.sendButton, styles.deleteButton]}
+            activeOpacity={0.8}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialCommunityIcons
+              name="close"
+              size={16}
+              color="#FFFFFF"
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.sendText}>Obriši listu</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* LIST CARD */}
@@ -163,6 +340,10 @@ const NewListScreen = () => {
         </View>
       </View>
 
+      {errorMessage ? (
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      ) : null}
+
       {/* MODAL */}
       <AddItemModal
         visible={showModal}
@@ -204,6 +385,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 16,
+  },
+
+  sendButtonDisabled: {
+    opacity: 0.6,
   },
 
   sendText: {
@@ -300,6 +485,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
+  actionsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    gap: 10,
+  },
+
+  deleteButton: {
+    backgroundColor: "#E53935",
+  },
+
   // ✅ ITEM CARD (with border)
   itemRow: {
     flexDirection: "row",
@@ -325,6 +523,15 @@ const styles = StyleSheet.create({
   itemTrashBtn: {
     padding: 6,
     borderRadius: 10,
+  },
+
+  errorText: {
+    textAlign: "center",
+    color: "#E53935",
+    fontSize: 14,
+    fontFamily: "SFCompactRounded-Regular",
+    marginHorizontal: 20,
+    marginTop: 12,
   },
 });
 

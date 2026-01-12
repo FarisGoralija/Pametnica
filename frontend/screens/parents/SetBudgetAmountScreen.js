@@ -9,26 +9,48 @@ import {
 import HeaderWithBack from "../../components/HeaderWithBack";
 import CustomInput from "../../components/CustomInput";
 import NextButton from "../../components/NextButton";
+import { updateChildAllowance } from "../../api/endpoints";
+import { useAuth } from "../../context/AuthContext";
+import { useChildren } from "../../context/ChildrenContext";
 
 const SetBudgetAmountScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { token } = useAuth();
+  const { refreshChildren } = useChildren();
 
   const { childId } = route.params;
 
   const [budget, setBudget] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const isDisabled = !budget;
+  const parsedBudget = parseFloat(budget.replace(",", "."));
+  const isDisabled =
+    !budget || Number.isNaN(parsedBudget) || parsedBudget < 0 || loading;
 
-  const handleSaveBudget = () => {
-    // here you will later save the budget (context / backend)
+  const handleSaveBudget = async () => {
+    setErrorMessage("");
+    if (isDisabled) return;
 
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: "ProfileParentMain" }],
-      })
-    );
+    setLoading(true);
+    try {
+      await updateChildAllowance(childId, parsedBudget, token);
+      await refreshChildren({ force: true });
+
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "ProfileParentMain" }],
+        })
+      );
+    } catch (err) {
+      const msg =
+        err?.message || "Ažuriranje mjesečnog budžeta nije uspjelo.";
+      setErrorMessage(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,8 +75,12 @@ const SetBudgetAmountScreen = () => {
           iconName="cash"
         />
 
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
+
         <NextButton
-          title="Sačuvaj"
+          title={loading ? "Spremanje..." : "Sačuvaj"}
           onPress={handleSaveBudget}
           isDisabled={isDisabled}
         />
@@ -87,5 +113,15 @@ const styles = StyleSheet.create({
     color: "#7D7D7D",
     fontFamily: "SFCompactRounded-Regular",
     marginBottom: 10,
+  },
+
+  errorText: {
+    width: "100%",
+    color: "#E53935",
+    fontSize: 14,
+    fontFamily: "SFCompactRounded-Regular",
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: "left",
   },
 });

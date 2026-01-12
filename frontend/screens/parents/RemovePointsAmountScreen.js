@@ -9,15 +9,22 @@ import {
 import HeaderWithBack from "../../components/HeaderWithBack";
 import CustomInput from "../../components/CustomInput";
 import NextButton from "../../components/NextButton";
+import { deductChildPoints } from "../../api/endpoints";
+import { useAuth } from "../../context/AuthContext";
+import { useChildren } from "../../context/ChildrenContext";
 
 const RemovePointsAmountScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { token } = useAuth();
+  const { refreshChildren } = useChildren();
 
-  const { childId } = route.params;
+  const { childId, childName } = route.params;
 
   const [points, setPoints] = useState("");
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (text) => {
     if (/^\d*$/.test(text)) {
@@ -34,16 +41,36 @@ const RemovePointsAmountScreen = () => {
       return;
     }
 
-    // 🔹 HERE you will later remove points (context / backend)
-    // example: removePoints(childId, points);
+    if (loading) return;
 
-    // ✅ RESET and go back to ProfileParentMain
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: "ProfileParentMain" }],
+    const parsed = parseInt(points, 10);
+    if (Number.isNaN(parsed) || parsed <= 0) {
+      setError(true);
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    deductChildPoints(childId, parsed, token)
+      .then(async () => {
+        await refreshChildren({ force: true });
+
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "ProfileParentMain" }],
+          })
+        );
       })
-    );
+      .catch((err) => {
+        const msg =
+          err?.message || "Skidanje bodova nije uspjelo. Pokušajte ponovo.";
+        setErrorMessage(msg);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -69,8 +96,15 @@ const RemovePointsAmountScreen = () => {
         {error && (
           <Text style={styles.errorText}>Unos mora biti isključivo broj</Text>
         )}
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
 
-        <NextButton title="Sačuvaj" onPress={handleSave} isDisabled={!points} />
+        <NextButton
+          title={loading ? "Spremanje..." : "Sačuvaj"}
+          onPress={handleSave}
+          isDisabled={!points || loading}
+        />
       </View>
     </View>
   );

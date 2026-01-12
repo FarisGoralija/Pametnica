@@ -19,16 +19,21 @@ import HeaderWithBack from "../../components/HeaderWithBack";
 import CustomInput from "../../components/CustomInput";
 import NextButton from "../../components/NextButton";
 import { useChildren } from "../../context/ChildrenContext";
+import { useAuth } from "../../context/AuthContext";
+import { createChild } from "../../api/endpoints";
 
 const AddChildScreen = () => {
   const navigation = useNavigation();
   const { addChild, childrenList } = useChildren();
+  const { token, email: parentEmail } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [maxError, setMaxError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // ✅ REGEX VALIDATION
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,8 +53,9 @@ const AddChildScreen = () => {
     setMaxError(false);
   };
 
-  const handleAddChild = () => {
+  const handleAddChild = async () => {
     setSubmitted(true);
+    setErrorMessage("");
 
     // ❌ MAX 2 CHILDREN
     if (childrenList.length >= 2) {
@@ -59,19 +65,41 @@ const AddChildScreen = () => {
 
     if (!name || !isEmailValid || !isPasswordValid) return;
 
-    addChild({
-      id: Date.now().toString(),
-      name,
-      email,
-    });
+    const [firstName, ...rest] = name.trim().split(/\s+/);
+    const lastName = rest.join(" ");
 
-    // ✅ RESET PROFILE STACK (FIXES LOOP)
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: "ProfileParentMain" }],
-      })
-    );
+    if (!firstName || !lastName) {
+      setErrorMessage("Unesite ime i prezime djeteta.");
+      return;
+    }
+
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      const payload = {
+        email,
+        firstName,
+        lastName,
+        password,
+        monthlyAllowance: 0,
+      };
+      const result = await createChild(payload, token, parentEmail);
+
+      addChild(result?.id ? result : { id: Date.now().toString(), name, email });
+
+      // ✅ RESET PROFILE STACK (FIXES LOOP)
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "ProfileParentMain" }],
+        })
+      );
+    } catch (err) {
+      setErrorMessage(err.message || "Registracija djeteta nije uspjela.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ✅ HIDE TAB BAR WHILE ON THIS SCREEN
@@ -171,9 +199,16 @@ const AddChildScreen = () => {
                   Možete dodati najviše dvoje djece.
                 </Text>
               )}
+              {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              ) : null}
 
               <View style={styles.buttonSpacer}>
-                <NextButton title="Dalje" onPress={handleAddChild} />
+                <NextButton
+                  title={loading ? "Dodavanje..." : "Dalje"}
+                  onPress={handleAddChild}
+                  isDisabled={loading}
+                />
               </View>
             </View>
           </View>

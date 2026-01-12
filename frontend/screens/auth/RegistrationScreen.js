@@ -3,13 +3,19 @@ import { View, StyleSheet, Text, Platform } from "react-native";
 import HeaderWithBack from "../../components/HeaderWithBack";
 import CustomInput from "../../components/CustomInput";
 import NextButton from "../../components/NextButton";
+import { registerParent } from "../../api/endpoints";
+import { useAuth } from "../../context/AuthContext";
 
-const RegistrationScreen = () => {
+const RegistrationScreen = ({ route }) => {
+  const role = route?.params?.role || "parent";
+  const { login } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = emailRegex.test(email);
@@ -17,10 +23,29 @@ const RegistrationScreen = () => {
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
   const isPasswordValid = passwordRegex.test(password);
 
-  const handleCreateAccount = () => {
+  const handleCreateAccount = async () => {
     setSubmitted(true);
+    setErrorMessage("");
+
     if (!firstName || !lastName || !isEmailValid || !isPasswordValid) return;
-    console.log("Account created successfully");
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      const payload = { firstName, lastName, email, password };
+      const result = await registerParent(payload);
+      const resolvedRole = result?.role || role;
+      await login({
+        role: resolvedRole,
+        token: result?.token,
+        email: result?.email,
+      });
+      console.log("Account created successfully", result);
+    } catch (err) {
+      setErrorMessage(err.message || "Registracija nije uspjela.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,7 +119,14 @@ const RegistrationScreen = () => {
 
       {/* BUTTON */}
       <View style={styles.buttonWrapper}>
-        <NextButton title="Kreiraj nalog" onPress={handleCreateAccount} />
+        <NextButton
+          title={loading ? "Kreiranje..." : "Kreiraj nalog"}
+          onPress={handleCreateAccount}
+          isDisabled={loading}
+        />
+        {errorMessage ? (
+          <Text style={styles.statusErrorText}>{errorMessage}</Text>
+        ) : null}
       </View>
     </View>
   );
@@ -128,6 +160,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: -6,
     marginBottom: 10,
+    textAlign: "left",
+    fontFamily: "SFCompactRounded-Regular",
+  },
+
+  statusErrorText: {
+    width: 300,
+    color: "#E53935",
+    fontSize: 14,
+    marginTop: 10,
     textAlign: "left",
     fontFamily: "SFCompactRounded-Regular",
   },
