@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -7,14 +7,21 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import { useChildren } from "../../context/ChildrenContext";
 
 const ChildrenListScreen = () => {
   const navigation = useNavigation();
-  const { childrenList } = useChildren();
+  const { childrenList, refreshChildren, loadingChildren, childrenError } =
+    useChildren();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshChildren();
+    }, [refreshChildren])
+  );
 
   return (
     <View style={styles.container}>
@@ -25,7 +32,12 @@ const ChildrenListScreen = () => {
 
       {/* CONTENT */}
       <View style={styles.content}>
-        {childrenList.length === 0 ? (
+        {childrenError ? (
+          <Text style={styles.errorText}>{childrenError}</Text>
+        ) : null}
+        {loadingChildren && childrenList.length === 0 ? (
+          <Text style={styles.loadingText}>Učitavanje...</Text>
+        ) : childrenList.length === 0 ? (
           // EMPTY STATE
           <TouchableOpacity
             style={styles.addEmpty}
@@ -64,7 +76,7 @@ const ChildrenListScreen = () => {
                     allowFontScaling={false}
                     includeFontPadding={false}
                   >
-                    {child.name}
+                {child.name || child.fullName || "Dijete"}
                   </Text>
                 </View>
               </View>
@@ -144,5 +156,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#7D7D7D",
     fontFamily: "SFCompactRounded-Semibold",
+  },
+
+  loadingText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "#7D7D7D",
+    fontFamily: "SFCompactRounded-Regular",
+    marginBottom: 12,
+  },
+
+  errorText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "#E53935",
+    fontFamily: "SFCompactRounded-Regular",
+    marginBottom: 12,
   },
 });

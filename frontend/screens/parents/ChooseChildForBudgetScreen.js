@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   Platform,
   TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import RoleCard from "../../components/RoleCard";
@@ -16,7 +16,8 @@ import { useChildren } from "../../context/ChildrenContext";
 
 const ChooseChildForBudgetScreen = () => {
   const navigation = useNavigation();
-  const { childrenList } = useChildren();
+  const { childrenList, refreshChildren, loadingChildren, childrenError } =
+    useChildren();
 
   const [selectedChildId, setSelectedChildId] = useState(null);
   const handleNext = () => {
@@ -24,10 +25,18 @@ const ChooseChildForBudgetScreen = () => {
 
     navigation.navigate("SetBudgetAmount", {
       childId: selectedChildId,
+      childName:
+        childrenList.find((c) => c.id === selectedChildId)?.name || "",
     });
   };
 
   const isSingleChild = childrenList.length === 1;
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshChildren();
+    }, [refreshChildren])
+  );
 
   return (
     <View style={styles.container}>
@@ -40,7 +49,12 @@ const ChooseChildForBudgetScreen = () => {
       </View>
 
       <View style={styles.content}>
-        {childrenList.length === 0 ? (
+        {childrenError ? (
+          <Text style={styles.errorText}>{childrenError}</Text>
+        ) : null}
+        {loadingChildren && childrenList.length === 0 ? (
+          <Text style={styles.loadingText}>Učitavanje...</Text>
+        ) : childrenList.length === 0 ? (
           <>
             <Text style={styles.emptyText}>
               Nemate dodanu djecu. Da biste postavili mjesečni budžet, prvo
@@ -65,7 +79,7 @@ const ChooseChildForBudgetScreen = () => {
               {childrenList.map((child) => (
                 <RoleCard
                   key={child.id}
-                  title={child.name.split(" ")[0]}
+                  title={(child.name || "").split(" ")[0] || "Dijete"}
                   icon={
                     <MaterialCommunityIcons
                       name="emoticon-happy-outline"
@@ -134,5 +148,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "SFCompactRounded-Semibold",
     color: "#228390",
+  },
+
+  loadingText: {
+    fontSize: 14,
+    fontFamily: "SFCompactRounded-Regular",
+    color: "#7D7D7D",
+    textAlign: "center",
+    marginTop: 16,
+  },
+
+  errorText: {
+    fontSize: 14,
+    fontFamily: "SFCompactRounded-Regular",
+    color: "#E53935",
+    textAlign: "center",
+    marginTop: 16,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -6,22 +6,83 @@ import {
   Platform,
   Text,
   TouchableOpacity,
+  RefreshControl,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import ListsCard from "../../components/ListsCard";
-import { useList } from "../../context/ListContext";
+import { useAuth } from "../../context/AuthContext";
+import { useChildren } from "../../context/ChildrenContext";
+import {
+  getParentActiveLists,
+  getParentPendingLists,
+} from "../../api/endpoints";
 
-const ParentListsScreen = () => {
+const ParentListsScreen = ({ route }) => {
   const navigation = useNavigation();
-  const { lists } = useList();
+  const { token } = useAuth();
+  const { childrenList } = useChildren();
+  const childId = route?.params?.childId || childrenList?.[0]?.id;
   const [activeTab, setActiveTab] = useState("approved");
+  const [activeLists, setActiveLists] = useState([]);
+  const [pendingLists, setPendingLists] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
-  const waitingLists = lists.filter((l) => l.parentApproved === false);
+  const normalizeList = (list) => {
+    if (!list) return null;
+    return {
+      id: list.id || list.Id,
+      title: list.title || list.Title || "Lista",
+      status: list.status || list.Status,
+      type: list.type || list.Type,
+      items: list.items || list.Items || [],
+    };
+  };
 
-  const approvedLists = lists.filter((l) => l.parentApproved === true);
+  const fetchLists = useCallback(async () => {
+    if (!token || !childId) return;
+    setLoading(true);
+    setErrorMessage("");
+    try {
+      const [activeRes, pendingRes] = await Promise.all([
+        getParentActiveLists(token, childId),
+        getParentPendingLists(token, childId),
+      ]);
+      setActiveLists(
+        Array.isArray(activeRes)
+          ? activeRes.map((l) => normalizeList(l)).filter(Boolean)
+          : []
+      );
+      setPendingLists(
+        Array.isArray(pendingRes)
+          ? pendingRes.map((l) => normalizeList(l)).filter(Boolean)
+          : []
+      );
+    } catch (err) {
+      setErrorMessage(
+        err?.message || "Neuspješno učitavanje listi. Pokušajte ponovo."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [token, childId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchLists();
+    }, [fetchLists])
+  );
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    await fetchLists();
+    setRefreshing(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -36,6 +97,9 @@ const ParentListsScreen = () => {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* TABS */}
         <View style={styles.tabs}>
@@ -54,7 +118,12 @@ const ParentListsScreen = () => {
           />
         </View>
 
-        {activeTab === "waiting" && (
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
+        {loading && activeLists.length === 0 && pendingLists.length === 0 ? (
+          <Text style={styles.loadingText}>Učitavanje...</Text>
+        ) : activeTab === "waiting" ? (
           <ListsCard
             title="Liste na čekanju"
             emptyText="Nema lista na čekanju"
@@ -66,14 +135,15 @@ const ParentListsScreen = () => {
                 color="#fff"
               />
             }
-            lists={waitingLists}
+            lists={pendingLists}
             onCardPress={(list) =>
-              navigation.navigate("ParentListDetails", { listId: list.id })
+              navigation.navigate("ParentListDetails", {
+                listId: list.id,
+                childId,
+              })
             }
           />
-        )}
-
-        {activeTab === "approved" && (
+        ) : (
           <ListsCard
             title="Odobrene liste"
             emptyText="Nema odobrenih lista"
@@ -85,9 +155,12 @@ const ParentListsScreen = () => {
                 color="#fff"
               />
             }
-            lists={approvedLists}
+            lists={activeLists}
             onCardPress={(list) =>
-              navigation.navigate("ParentListDetails", { listId: list.id })
+              navigation.navigate("ParentListDetails", {
+                listId: list.id,
+                childId,
+              })
             }
           />
         )}
@@ -171,6 +244,20 @@ const styles = StyleSheet.create({
 
   activeTabText: {
     color: "#FFFFFF",
+  },
+
+  loadingText: {
+    textAlign: "center",
+    color: "#7D7D7D",
+    fontSize: 14,
+    marginBottom: 12,
+  },
+
+  errorText: {
+    textAlign: "center",
+    color: "#E53935",
+    fontSize: 14,
+    marginBottom: 12,
   },
 });
 

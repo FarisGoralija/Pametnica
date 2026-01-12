@@ -1,19 +1,73 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Text } from "react-native";
+import React, { useCallback, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Text,
+  RefreshControl,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import ProfileCard from "../../components/ProfileCard";
 import ActionSquare from "../../components/ActionSquare";
 import ListsCard from "../../components/ListsCard";
 import AddListModal from "../../components/AddListModal";
-import { useList } from "../../context/ListContext";
+import { useAuth } from "../../context/AuthContext";
+import { getChildActiveLists } from "../../api/endpoints";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const { lists } = useList();
+  const { token } = useAuth();
   const [showAddList, setShowAddList] = useState(false);
-  const myLists = lists.filter((l) => l.status === "active");
+  const [myLists, setMyLists] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const normalizeList = (list) => {
+    if (!list) return null;
+    return {
+      id: list.id || list.Id,
+      title: list.title || list.Title || "Lista",
+      status: list.status || list.Status,
+      type: list.type || list.Type,
+      items: list.items || list.Items || [],
+    };
+  };
+
+  const fetchActive = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    setErrorMessage("");
+    try {
+      const activeRes = await getChildActiveLists(token);
+      setMyLists(
+        Array.isArray(activeRes)
+          ? activeRes.map((l) => normalizeList(l)).filter(Boolean)
+          : []
+      );
+    } catch (err) {
+      setErrorMessage(
+        err?.message || "Neuspješno učitavanje aktivnih listi."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchActive();
+    }, [fetchActive])
+  );
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    await fetchActive();
+    setRefreshing(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -23,6 +77,9 @@ const HomeScreen = () => {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* TITLE */}
         <SafeAreaView edges={["top"]}>
@@ -95,6 +152,12 @@ const HomeScreen = () => {
           }
           onCreatePress={() => setShowAddList(true)}
         />
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
+        {loading && myLists.length === 0 ? (
+          <Text style={styles.loadingText}>Učitavanje...</Text>
+        ) : null}
       </ScrollView>
 
       <AddListModal
@@ -156,6 +219,20 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     marginBottom: 16,
+  },
+
+  loadingText: {
+    textAlign: "center",
+    color: "#7D7D7D",
+    fontSize: 14,
+    marginTop: 8,
+  },
+
+  errorText: {
+    textAlign: "center",
+    color: "#E53935",
+    fontSize: 14,
+    marginTop: 8,
   },
 });
 

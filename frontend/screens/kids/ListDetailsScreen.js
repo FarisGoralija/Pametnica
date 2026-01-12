@@ -45,7 +45,7 @@ const ListDetailsScreen = ({ route }) => {
                   color="#12C7E5"
                 />
 
-                <Text style={styles.itemText}>{item.text}</Text>
+                <Text style={styles.itemText}>{item.text || item.name}</Text>
               </View>
             ))
           )}

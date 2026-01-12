@@ -15,6 +15,7 @@ import NextButton from "../../components/NextButton";
 import Logo from "../../components/Logo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
+import { loginParent, loginChild } from "../../api/endpoints";
 
 const LoginScreen = ({ navigation, route }) => {
   const role = route?.params?.role || "parent";
@@ -22,23 +23,48 @@ const LoginScreen = ({ navigation, route }) => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // ✅ EMAIL REGEX
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = emailRegex.test(email);
 
-  const handleLogin = () => {
-    if (!isEmailValid) {
-      console.log("Email format is not valid");
+  const handleLogin = async () => {
+    setErrorMessage("");
+
+    if (!isEmailValid || password.length === 0) {
       return;
     }
+    if (loading) return;
 
-    if (password.length === 0) {
-      console.log("Please enter password");
-      return;
+    setLoading(true);
+    try {
+      const loginFn = role === "child" ? loginChild : loginParent;
+      const result = await loginFn({ email, password });
+      const resolvedRole = result?.role || role;
+      await login({
+        role: resolvedRole,
+        token: result?.token,
+        email: result?.email,
+      });
+      console.log("Logged in successfully", result);
+    } catch (err) {
+      const rawMessage = err?.message || "";
+      const lower = rawMessage.toLowerCase();
+
+      let friendly = "Prijava nije uspjela. Pokušajte ponovo.";
+      if (lower.includes("401") || lower.includes("invalid")) {
+        friendly = "Unijeli ste netačne podatke za prijavu.";
+      } else if (lower.includes("403") || lower.includes("not allowed")) {
+        friendly = "Ovaj račun nema dozvolu za ovu prijavu.";
+      }
+
+      setErrorMessage(friendly);
+    } finally {
+      setLoading(false);
     }
-
-    login(role);
   };
   const handleForgotPassword = () => {
     navigation.navigate("ForgotPasswordScreen");
@@ -48,7 +74,7 @@ const LoginScreen = ({ navigation, route }) => {
     navigation.navigate("RegistrationScreen", { role });
   };
 
-  const isButtonDisabled = !isEmailValid || password.length === 0;
+  const isButtonDisabled = !isEmailValid || password.length === 0 || loading;
 
   return (
     <KeyboardAvoidingView
@@ -89,13 +115,27 @@ const LoginScreen = ({ navigation, route }) => {
               keyboardType="email-address"
             />
 
-            <CustomInput
-              placeholder="Šifra"
-              value={password}
-              onChangeText={setPassword}
-              iconName="lock-outline"
-              secureTextEntry
-            />
+            <View style={styles.passwordWrapper}>
+              <CustomInput
+                key={showPassword ? "pw-show" : "pw-hide"}
+                placeholder="Šifra"
+                value={password}
+                onChangeText={setPassword}
+                iconName="lock-outline"
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowPassword((prev) => !prev)}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={22}
+                  color="#7D7D7D"
+                />
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               onPress={handleForgotPassword}
@@ -108,7 +148,7 @@ const LoginScreen = ({ navigation, route }) => {
 
           <View style={styles.buttonWrapper}>
             <NextButton
-              title="Prijavi se"
+              title={loading ? "Prijava..." : "Prijavi se"}
               onPress={handleLogin}
               isDisabled={isButtonDisabled}
             />
@@ -122,6 +162,9 @@ const LoginScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
               </View>
             )}
+            {errorMessage ? (
+              <Text style={styles.statusErrorText}>{errorMessage}</Text>
+            ) : null}
           </View>
         </View>
       </ScrollView>
@@ -198,6 +241,29 @@ const styles = StyleSheet.create({
     fontFamily: "sf-rounded-regular",
     fontSize: 16,
     color: "#3797EF",
+  },
+
+  statusErrorText: {
+    width: 300,
+    color: "#E53935",
+    fontSize: 14,
+    marginTop: 16,
+    textAlign: "center",
+    fontFamily: "sf-rounded-regular",
+  },
+
+  passwordWrapper: {
+    width: "100%",
+    alignItems: "center",
+    position: "relative",
+    marginTop: 10,
+  },
+
+  eyeButton: {
+    position: "absolute",
+    right: 40,
+    top: Platform.OS === "android" ? 10 : 12,
+    padding: 6,
   },
 });
 
