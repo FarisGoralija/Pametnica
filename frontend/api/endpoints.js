@@ -377,6 +377,54 @@ export async function getChildActiveLists(token) {
   return data;
 }
 
+// ME PROFILE
+export async function getMe(token) {
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(`${BASE_URL}/Me`, {
+    method: "GET",
+    headers,
+  });
+
+  const data = await parseJsonSafely(response);
+  if (!response.ok) {
+    const message =
+      (data && typeof data === "object" && (data.error || data.message)) ||
+      (typeof data === "string" ? data : null) ||
+      "Učitavanje profila nije uspjelo.";
+    const prefix = response.status ? `${response.status}: ` : "";
+    throw new Error(`${prefix}${message}`);
+  }
+
+  return data;
+}
+
+export async function updateMe(payload, token) {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(`${BASE_URL}/Me`, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJsonSafely(response);
+  if (!response.ok) {
+    const message =
+      (data && typeof data === "object" && (data.error || data.message)) ||
+      (typeof data === "string" ? data : null) ||
+      "Ažuriranje profila nije uspjelo.";
+    const prefix = response.status ? `${response.status}: ` : "";
+    throw new Error(`${prefix}${message}`);
+  }
+
+  return data;
+}
+
 export async function updateShoppingListTitle(listId, title, token) {
   const headers = {
     "Content-Type": "application/json",

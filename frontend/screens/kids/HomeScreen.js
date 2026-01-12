@@ -14,7 +14,7 @@ import ActionSquare from "../../components/ActionSquare";
 import ListsCard from "../../components/ListsCard";
 import AddListModal from "../../components/AddListModal";
 import { useAuth } from "../../context/AuthContext";
-import { getChildActiveLists } from "../../api/endpoints";
+import { getChildActiveLists, getMe } from "../../api/endpoints";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -24,6 +24,10 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [points, setPoints] = useState(0);
+  const [balance, setBalance] = useState(0);
+  const [allowance, setAllowance] = useState(0);
 
   const normalizeList = (list) => {
     if (!list) return null;
@@ -35,6 +39,19 @@ const HomeScreen = () => {
       items: list.items || list.Items || [],
     };
   };
+
+  const fetchMe = useCallback(async () => {
+    if (!token) return;
+    try {
+      const me = await getMe(token);
+      setFullName(me.fullName || "");
+      setPoints(me.points ?? 0);
+      setBalance(me.currentBalance ?? 0);
+      setAllowance(me.monthlyAllowance ?? 0);
+    } catch (err) {
+      setErrorMessage(err?.message || "Neuspješno učitavanje profila.");
+    }
+  }, [token]);
 
   const fetchActive = useCallback(async () => {
     if (!token) return;
@@ -58,8 +75,9 @@ const HomeScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
+      fetchMe();
       fetchActive();
-    }, [fetchActive])
+    }, [fetchActive, fetchMe])
   );
 
   const handleRefresh = async () => {
@@ -88,11 +106,11 @@ const HomeScreen = () => {
 
         {/* PROFILE CARD */}
         <ProfileCard
-          name="Faris Goralija"
-          points="50 poena"
+          name={fullName || "Tvoj profil"}
+          points={`${points} poena`}
           balanceLabel="Dostupni novac"
-          balanceValue={10} // 👈 number
-          maxBalance={200}
+          balanceValue={balance}
+          maxBalance={allowance || 200}
           backgroundColor="#12C7E5"
           avatarIcon={
             <MaterialCommunityIcons name="account" size={28} color="#fff" />
