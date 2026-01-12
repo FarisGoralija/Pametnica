@@ -13,7 +13,7 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = RoleNames.Parent)]
+[Authorize(Roles = $"{RoleNames.Parent},{RoleNames.Child}")]
 public class ChildrenController(
     IChildService childService,
     UserManager<ApplicationUser> userManager,
@@ -74,8 +74,9 @@ public class ChildrenController(
             : StatusCode(result.StatusCode ?? StatusCodes.Status400BadRequest, new { error = result.Error });
     }
 
-    [HttpPost("{childId}/deduct-balance")]
-    public async Task<IActionResult> DeductBalance(string childId, [FromBody] DeductBalanceRequest request)
+    [HttpPut("{childId}/reset-balance")]
+    [Authorize(Roles = RoleNames.Parent)]
+    public async Task<IActionResult> ResetBalance(string childId)
     {
         var ownershipCheck = await AuthorizeParentOwnership(childId);
         if (ownershipCheck is not null)
@@ -84,7 +85,35 @@ public class ChildrenController(
         }
 
         var parentId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var result = await childService.DeductBalanceAsync(parentId, childId, request.Amount);
+        var result = await childService.ResetBalanceToAllowanceAsync(parentId, childId);
+        return result.Success
+            ? Ok(result.Data)
+            : StatusCode(result.StatusCode ?? StatusCodes.Status400BadRequest, new { error = result.Error });
+    }
+
+    [HttpPost("{childId}/deduct-balance")]
+    public async Task<IActionResult> DeductBalance(string childId, [FromBody] DeductBalanceRequest request)
+    {
+        var isParent = User.IsInRole(RoleNames.Parent);
+        if (isParent)
+        {
+            var ownershipCheck = await AuthorizeParentOwnership(childId);
+            if (ownershipCheck is not null)
+            {
+                return ownershipCheck;
+            }
+        }
+        else
+        {
+            var childIdFromToken = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.Equals(childIdFromToken, childId, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+        }
+
+        var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var result = await childService.DeductBalanceAsync(requesterId, childId, isParent, request.Amount);
         return result.Success
             ? Ok(result.Data)
             : StatusCode(result.StatusCode ?? StatusCodes.Status400BadRequest, new { error = result.Error });

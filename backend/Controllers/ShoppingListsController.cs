@@ -25,11 +25,12 @@ public class ShoppingListsController(IShoppingListService shoppingListService) :
     }
 
     [HttpPost("{listId:guid}/items")]
-    [Authorize(Roles = RoleNames.Child)]
+    [Authorize(Roles = $"{RoleNames.Child},{RoleNames.Parent}")]
     public async Task<IActionResult> AddItem(Guid listId, [FromBody] CreateShoppingListItemRequest request)
     {
-        var childId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var result = await shoppingListService.AddItemAsync(childId, listId, request);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var isParent = User.IsInRole(RoleNames.Parent);
+        var result = await shoppingListService.AddItemAsync(userId, isParent, listId, request);
         return ToActionResult(result);
     }
 
@@ -63,6 +64,28 @@ public class ShoppingListsController(IShoppingListService shoppingListService) :
         var childId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var result = await shoppingListService.SubmitAsync(childId, listId);
         return ToActionResult(result);
+    }
+
+    [HttpPut("{listId:guid}/title")]
+    [Authorize(Roles = $"{RoleNames.Child},{RoleNames.Parent}")]
+    public async Task<IActionResult> UpdateTitle(Guid listId, [FromBody] UpdateShoppingListTitleRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var isParent = User.IsInRole(RoleNames.Parent);
+        var result = await shoppingListService.UpdateTitleAsync(userId, isParent, listId, request.Title);
+        return ToActionResult(result);
+    }
+
+    [HttpDelete("{listId:guid}")]
+    [Authorize(Roles = $"{RoleNames.Child},{RoleNames.Parent}")]
+    public async Task<IActionResult> Delete(Guid listId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var isParent = User.IsInRole(RoleNames.Parent);
+        var result = await shoppingListService.DeleteAsync(userId, isParent, listId);
+        return result.Success
+            ? NoContent()
+            : StatusCode(result.StatusCode ?? StatusCodes.Status400BadRequest, new { error = result.Error });
     }
 
     [HttpPost("{listId:guid}/items/{itemId:guid}/complete")]

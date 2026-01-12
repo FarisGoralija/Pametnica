@@ -36,7 +36,7 @@ public class ShoppingListService(
         return ServiceResult<ShoppingListDto>.Ok(ToDto(list));
     }
 
-    public async Task<ServiceResult<ShoppingListItemDto>> AddItemAsync(string childId, Guid listId, CreateShoppingListItemRequest request)
+    public async Task<ServiceResult<ShoppingListItemDto>> AddItemAsync(string userId, bool isParent, Guid listId, CreateShoppingListItemRequest request)
     {
         var list = await dbContext.ShoppingLists
             .Include(l => l.Child)
@@ -47,9 +47,19 @@ public class ShoppingListService(
             return ServiceResult<ShoppingListItemDto>.Fail("List not found.", StatusCodes.Status404NotFound);
         }
 
-        if (!string.Equals(list.ChildId, childId, StringComparison.OrdinalIgnoreCase))
+        if (isParent)
         {
-            return ServiceResult<ShoppingListItemDto>.Fail("Forbidden.", StatusCodes.Status403Forbidden);
+            if (!await ParentOwnsList(userId, list))
+            {
+                return ServiceResult<ShoppingListItemDto>.Fail("Forbidden.", StatusCodes.Status403Forbidden);
+            }
+        }
+        else
+        {
+            if (!string.Equals(list.ChildId, userId, StringComparison.OrdinalIgnoreCase))
+            {
+                return ServiceResult<ShoppingListItemDto>.Fail("Forbidden.", StatusCodes.Status403Forbidden);
+            }
         }
 
         var canAdd = list.Status == ShoppingListStatus.Pending ||
@@ -71,6 +81,73 @@ public class ShoppingListService(
         await dbContext.SaveChangesAsync();
 
         return ServiceResult<ShoppingListItemDto>.Ok(ToDto(item));
+    }
+
+    public async Task<ServiceResult<ShoppingListDto>> UpdateTitleAsync(string userId, bool isParent, Guid listId, string title)
+    {
+        var list = await dbContext.ShoppingLists
+            .Include(l => l.Child)
+            .FirstOrDefaultAsync(l => l.Id == listId);
+
+        if (list is null)
+        {
+            return ServiceResult<ShoppingListDto>.Fail("List not found.", StatusCodes.Status404NotFound);
+        }
+
+        if (isParent)
+        {
+            if (!await ParentOwnsList(userId, list))
+            {
+                return ServiceResult<ShoppingListDto>.Fail("Forbidden.", StatusCodes.Status403Forbidden);
+            }
+
+            if (list.Status != ShoppingListStatus.Pending)
+            {
+                return ServiceResult<ShoppingListDto>.Fail("Parent can only rename pending lists.", StatusCodes.Status400BadRequest);
+            }
+        }
+        else
+        {
+            if (!string.Equals(list.ChildId, userId, StringComparison.OrdinalIgnoreCase))
+            {
+                return ServiceResult<ShoppingListDto>.Fail("Forbidden.", StatusCodes.Status403Forbidden);
+            }
+        }
+
+        list.Title = title;
+        await dbContext.SaveChangesAsync();
+        return ServiceResult<ShoppingListDto>.Ok(ToDto(list));
+    }
+
+    public async Task<ServiceResult<bool>> DeleteAsync(string userId, bool isParent, Guid listId)
+    {
+        var list = await dbContext.ShoppingLists
+            .Include(l => l.Child)
+            .FirstOrDefaultAsync(l => l.Id == listId);
+
+        if (list is null)
+        {
+            return ServiceResult<bool>.Fail("List not found.", StatusCodes.Status404NotFound);
+        }
+
+        if (isParent)
+        {
+            if (!await ParentOwnsList(userId, list))
+            {
+                return ServiceResult<bool>.Fail("Forbidden.", StatusCodes.Status403Forbidden);
+            }
+        }
+        else
+        {
+            if (!string.Equals(list.ChildId, userId, StringComparison.OrdinalIgnoreCase))
+            {
+                return ServiceResult<bool>.Fail("Forbidden.", StatusCodes.Status403Forbidden);
+            }
+        }
+
+        dbContext.ShoppingLists.Remove(list);
+        await dbContext.SaveChangesAsync();
+        return ServiceResult<bool>.Ok(true);
     }
 
     public async Task<ServiceResult<ShoppingListItemDto>> UpdateItemAsync(string userId, bool isParent, Guid listId, Guid itemId, UpdateShoppingListItemRequest request)

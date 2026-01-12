@@ -91,13 +91,30 @@ public class ChildService(
         }
 
         child.Data.MonthlyAllowance = monthlyAllowance;
+        child.Data.CurrentBalance = monthlyAllowance;
         await dbContext.SaveChangesAsync();
         return ServiceResult<ChildDto>.Ok(ToDto(child.Data));
     }
 
-    public async Task<ServiceResult<ChildDto>> DeductBalanceAsync(string parentId, string childId, decimal amount)
+    public async Task<ServiceResult<ChildDto>> ResetBalanceToAllowanceAsync(string parentId, string childId)
     {
         var child = await FindOwnedChild(parentId, childId);
+        if (!child.Success || child.Data is null)
+        {
+            return ServiceResult<ChildDto>.Fail(child.Error ?? "Child not found.", child.StatusCode);
+        }
+
+        child.Data.CurrentBalance = child.Data.MonthlyAllowance;
+        await dbContext.SaveChangesAsync();
+        return ServiceResult<ChildDto>.Ok(ToDto(child.Data));
+    }
+
+    public async Task<ServiceResult<ChildDto>> DeductBalanceAsync(string requesterId, string childId, bool isParent, decimal amount)
+    {
+        var child = isParent
+            ? await FindOwnedChild(requesterId, childId)
+            : await FindChildSelf(childId);
+
         if (!child.Success || child.Data is null)
         {
             return ServiceResult<ChildDto>.Fail(child.Error ?? "Child not found.", child.StatusCode);
@@ -178,6 +195,16 @@ public class ChildService(
         }
 
         return ServiceResult<ApplicationUser>.Ok(child);
+    }
+
+    private async Task<ServiceResult<ApplicationUser>> FindChildSelf(string childId)
+    {
+        var child = await dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == childId && u.Role == RoleNames.Child);
+
+        return child is null
+            ? ServiceResult<ApplicationUser>.Fail("Child not found.", StatusCodes.Status404NotFound)
+            : ServiceResult<ApplicationUser>.Ok(child);
     }
 
     private static ChildDto ToDto(ApplicationUser user) => new()

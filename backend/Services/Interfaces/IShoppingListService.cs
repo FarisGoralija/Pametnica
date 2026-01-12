@@ -7,9 +7,11 @@ public interface IShoppingListService
 {
     // Child operations
     Task<ServiceResult<ShoppingListDto>> CreateAsync(string childId, CreateShoppingListRequest request);
-    Task<ServiceResult<ShoppingListItemDto>> AddItemAsync(string childId, Guid listId, CreateShoppingListItemRequest request);
+    Task<ServiceResult<ShoppingListItemDto>> AddItemAsync(string userId, bool isParent, Guid listId, CreateShoppingListItemRequest request);
     Task<ServiceResult<ShoppingListItemDto>> UpdateItemAsync(string userId, bool isParent, Guid listId, Guid itemId, UpdateShoppingListItemRequest request);
     Task<ServiceResult<bool>> RemoveItemAsync(string userId, bool isParent, Guid listId, Guid itemId);
+    Task<ServiceResult<ShoppingListDto>> UpdateTitleAsync(string userId, bool isParent, Guid listId, string title);
+    Task<ServiceResult<bool>> DeleteAsync(string userId, bool isParent, Guid listId);
     Task<ServiceResult<ShoppingListDto>> SubmitAsync(string childId, Guid listId);
     Task<ServiceResult<ShoppingListDto>> CompleteItemAsync(string childId, Guid listId, Guid itemId, decimal price);
     Task<ServiceResult<IEnumerable<ShoppingListDto>>> GetChildPendingAsync(string childId);
