@@ -9,7 +9,7 @@ public class ApplicationUser : IdentityUser
     public string LastName { get; set; } = null!;
 
     // Stored as a computed column for convenience in queries and responses.
-    public string FullName { get; private set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
 
     // Convenience role indicator alongside Identity roles for quick filtering.
     public string Role { get; set; } = null!;

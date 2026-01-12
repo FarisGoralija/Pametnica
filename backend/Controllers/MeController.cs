@@ -14,7 +14,6 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 [Authorize(Roles = $"{RoleNames.Parent},{RoleNames.Child}")]
 public class MeController(
-    IChildService childService,
     IAuthorizationService authorizationService,
     UserManager<ApplicationUser> userManager) : ControllerBase
 {
