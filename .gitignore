@@ -361,3 +361,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Python OCR Service environment files
+ocr-service/.env
+ocr-service/*.env
+*.env
+
+# Python virtual environment
+ocr-service/venv/
+ocr-service/__pycache__/

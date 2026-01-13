@@ -10,7 +10,9 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ShoppingListsController(IShoppingListService shoppingListService) : ControllerBase
+public class ShoppingListsController(
+    IShoppingListService shoppingListService,
+    IOcrVerificationService ocrVerificationService) : ControllerBase
 {
     // Child endpoints
     [HttpPost]
@@ -141,6 +143,58 @@ public class ShoppingListsController(IShoppingListService shoppingListService) :
         var parentId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var result = await shoppingListService.RejectAsync(parentId, listId);
         return ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Verify a shopping item using OCR + AI semantic matching.
+    /// 
+    /// Workflow:
+    /// 1. Child takes a photo of the price tag
+    /// 2. Image is sent to OCR service (processed in-memory, never stored)
+    /// 3. AI verifies if the price tag matches the shopping item
+    /// 4. Returns match result with confidence score
+    /// 
+    /// IMPORTANT: Image is NOT stored - processed in-memory and immediately discarded.
+    /// </summary>
+    /// <param name="listId">Shopping list ID</param>
+    /// <param name="itemId">Shopping item ID to verify</param>
+    /// <param name="request">Request containing base64-encoded image</param>
+    /// <returns>Verification result with match status and confidence</returns>
+    [HttpPost("{listId:guid}/items/{itemId:guid}/verify")]
+    [Authorize(Roles = RoleNames.Child)]
+    public async Task<IActionResult> VerifyItem(Guid listId, Guid itemId, [FromBody] VerifyItemRequest request)
+    {
+        var childId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+        // First, get the item to verify it exists and belongs to the child
+        var itemResult = await shoppingListService.GetItemAsync(childId, listId, itemId);
+        if (!itemResult.Success)
+        {
+            return StatusCode(
+                itemResult.StatusCode ?? StatusCodes.Status400BadRequest,
+                new { error = itemResult.Error });
+        }
+
+        var item = itemResult.Data!;
+
+        // Check if item is already completed
+        if (item.IsCompleted)
+        {
+            return BadRequest(new { error = "Ovaj artikal je već označen kao kupljen." });
+        }
+
+        // Call OCR verification service
+        // Image is processed in-memory by the OCR service and never stored
+        var verifyResult = await ocrVerificationService.VerifyItemAsync(item.Name, request.ImageBase64);
+
+        if (!verifyResult.Success)
+        {
+            return StatusCode(
+                verifyResult.StatusCode ?? StatusCodes.Status400BadRequest,
+                new { error = verifyResult.Error });
+        }
+
+        return Ok(verifyResult.Data);
     }
 
     private IActionResult ToActionResult<T>(ServiceResult<T> result)

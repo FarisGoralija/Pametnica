@@ -23,4 +23,7 @@ public interface IShoppingListService
     Task<ServiceResult<IEnumerable<ShoppingListDto>>> GetParentActiveAsync(string parentId, string childId);
     Task<ServiceResult<ShoppingListDto>> ApproveAsync(string parentId, Guid listId);
     Task<ServiceResult<ShoppingListDto>> RejectAsync(string parentId, Guid listId);
+
+    // Item retrieval for OCR verification
+    Task<ServiceResult<ShoppingListItemDto>> GetItemAsync(string childId, Guid listId, Guid itemId);
 }

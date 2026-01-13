@@ -4,6 +4,7 @@ using backend.Constants;
 using backend.Data;
 using backend.Models;
 using backend.Options;
+using backend.Services.Interfaces;
 using backend.Services;
 using backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -72,6 +73,12 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IChildService, ChildService>();
 builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
+
+// OCR Verification Service configuration
+// Communicates with Python OCR microservice for image verification
+var ocrSection = builder.Configuration.GetSection("OcrService");
+builder.Services.Configure<OcrServiceSettings>(ocrSection);
+builder.Services.AddHttpClient<IOcrVerificationService, OcrVerificationService>();
 
 const string CorsPolicy = "AllowFrontend";
 builder.Services.AddCors(options =>

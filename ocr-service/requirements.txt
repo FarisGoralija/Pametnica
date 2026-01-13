@@ -1,0 +1,21 @@
+# OCR + AI Verification Microservice
+# Dependencies for image processing and AI semantic matching
+
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# OCR
+pytesseract==0.3.13
+Pillow==11.1.0
+
+# AI/LLM client
+openai==1.59.7
+
+# Utilities
+python-dotenv==1.0.1
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# HTTP client for alternative AI providers
+httpx==0.28.1
