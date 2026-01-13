@@ -343,78 +343,84 @@ const ListDetailsScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.headerWrapper}>
-        <HeaderWithBack
-          title="Detalji liste"
-          onBack={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "ListsMain" }],
-            })
-          }
-        />
-      </View>
-
-      {/* CARD */}
-      <View style={styles.card}>
-        {/* TITLE */}
-        <Text style={styles.listTitle}>{list.title}</Text>
-
-        {/* ITEMS - Max 4 visible, scrollable if more */}
-        <View style={styles.itemsContainer}>
-          <ScrollView
-            style={styles.itemsScrollView}
-            contentContainerStyle={styles.itemsWrapper}
-            showsVerticalScrollIndicator={true}
-            nestedScrollEnabled={true}
-          >
-            {items.length === 0 ? (
-              <Text style={styles.emptyText}>Ova lista nema stavki</Text>
-            ) : (
-              items.map((item) => renderItemCard(item))
-            )}
-          </ScrollView>
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* HEADER */}
+        <View style={styles.headerWrapper}>
+          <HeaderWithBack
+            title="Detalji liste"
+            onBack={() =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "ListsMain" }],
+              })
+            }
+          />
         </View>
-      </View>
 
-      {/* TOTAL & COMPLETE BUTTON - Only for active lists */}
-      {isActiveList && items.length > 0 && (
-        <View style={styles.bottomSection}>
-          {/* TOTAL */}
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Ukupno:</Text>
-            <Text style={styles.totalValue}>{totalPrice.toFixed(2)} KM</Text>
-          </View>
+        {/* CARD */}
+        <View style={styles.card}>
+          {/* TITLE */}
+          <Text style={styles.listTitle}>{list.title}</Text>
 
-          {/* COMPLETE LIST BUTTON */}
-          {allItemsCompleted && (
-            <TouchableOpacity
-              style={[
-                styles.completeListButton,
-                completingList && styles.buttonDisabled,
-              ]}
-              onPress={handleCompleteList}
-              disabled={completingList}
+          {/* ITEMS - Max 4 visible, scrollable if more */}
+          <View style={styles.itemsContainer}>
+            <ScrollView
+              style={styles.itemsScrollView}
+              contentContainerStyle={styles.itemsWrapper}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
             >
-              {completingList ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+              {items.length === 0 ? (
+                <Text style={styles.emptyText}>Ova lista nema stavki</Text>
               ) : (
-                <>
-                  <MaterialCommunityIcons
-                    name="cart-check"
-                    size={24}
-                    color="#FFFFFF"
-                  />
-                  <Text style={styles.completeListButtonText}>
-                    Završi kupovinu
-                  </Text>
-                </>
+                items.map((item) => renderItemCard(item))
               )}
-            </TouchableOpacity>
-          )}
+            </ScrollView>
+          </View>
         </View>
-      )}
+
+        {/* TOTAL & COMPLETE BUTTON - Only for active lists */}
+        {isActiveList && items.length > 0 && (
+          <View style={styles.bottomSection}>
+            {/* TOTAL */}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Ukupno:</Text>
+              <Text style={styles.totalValue}>{totalPrice.toFixed(2)} KM</Text>
+            </View>
+
+            {/* COMPLETE LIST BUTTON */}
+            {allItemsCompleted && (
+              <TouchableOpacity
+                style={[
+                  styles.completeListButton,
+                  completingList && styles.buttonDisabled,
+                ]}
+                onPress={handleCompleteList}
+                disabled={completingList}
+              >
+                {completingList ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <MaterialCommunityIcons
+                      name="cart-check"
+                      size={24}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.completeListButtonText}>
+                      Završi kupovinu
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </ScrollView>
 
       {/* ERROR MODAL */}
       <Modal
@@ -460,6 +466,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
+  scrollContainer: {
+    flex: 1,
+  },
+
+  scrollContent: {
+    paddingBottom: Platform.OS === "ios" ? 90 : 70, // Space for tab navigator
+  },
+
   headerWrapper: {
     marginTop: Platform.OS === "android" ? 20 : 80,
   },
@@ -471,8 +485,6 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     padding: 18,
     elevation: 4,
-    flex: 1,
-    marginBottom: 180, // Space for bottom section (total + button) + tab navigator
   },
 
   listTitle: {
@@ -483,7 +495,7 @@ const styles = StyleSheet.create({
   },
 
   itemsContainer: {
-    flex: 1,
+    // No flex here - let it size naturally
   },
 
   itemsScrollView: {
@@ -606,13 +618,9 @@ const styles = StyleSheet.create({
 
   /* BOTTOM SECTION */
   bottomSection: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    paddingBottom: Platform.OS === "ios" ? 95 : 75, // Space for tab navigator
-    backgroundColor: "#FFFFFF",
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 16,
   },
 
   totalRow: {
