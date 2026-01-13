@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     padding: 18,
     elevation: 4,
     flex: 1,
-    marginBottom: 10,
+    marginBottom: 180, // Space for bottom section (total + button) + tab navigator
   },
 
   listTitle: {
@@ -606,8 +606,12 @@ const styles = StyleSheet.create({
 
   /* BOTTOM SECTION */
   bottomSection: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     padding: 16,
-    paddingBottom: Platform.OS === "ios" ? 100 : 80, // Increased to clear tab navigator
+    paddingBottom: Platform.OS === "ios" ? 95 : 75, // Space for tab navigator
     backgroundColor: "#FFFFFF",
   },
 

@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   Platform,
+  ScrollView,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -297,7 +298,12 @@ const NewListScreen = () => {
               </Text>
             </>
           ) : (
-            <View style={{ width: "100%" }}>
+            <ScrollView
+              style={styles.itemsScrollView}
+              contentContainerStyle={styles.itemsListContainer}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
               {items.map((item) => (
                 <View key={item.id} style={styles.itemRow}>
                   <MaterialCommunityIcons
@@ -321,7 +327,7 @@ const NewListScreen = () => {
                   </TouchableOpacity>
                 </View>
               ))}
-            </View>
+            </ScrollView>
           )}
 
           {/* ADD BUTTON ALWAYS VISIBLE */}
@@ -461,6 +467,15 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  itemsScrollView: {
+    width: "100%",
+    maxHeight: 280, // ~4 items visible (each item ~60px + spacing)
+  },
+
+  itemsListContainer: {
+    width: "100%",
   },
 
   illustration: {
