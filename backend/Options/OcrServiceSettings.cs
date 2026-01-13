@@ -14,9 +14,10 @@ public class OcrServiceSettings
 
     /// <summary>
     /// Timeout in seconds for OCR service requests.
-    /// OCR + AI processing may take a few seconds.
+    /// OCR + AI processing may take 20-40 seconds on slower servers.
+    /// Increased from 30 to 60 for Railway deployment.
     /// </summary>
-    public int TimeoutSeconds { get; set; } = 30;
+    public int TimeoutSeconds { get; set; } = 60;
 
     /// <summary>
     /// Whether the OCR service is enabled.

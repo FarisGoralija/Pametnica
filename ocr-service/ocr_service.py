@@ -38,6 +38,7 @@ class OCRService:
     def process_image(self, image_base64: str) -> OCRResult:
         """
         Process a base64-encoded image and extract product names/words.
+        Optimized for speed - uses fewer combinations.
         """
         try:
             # Decode base64 to bytes (in-memory)
@@ -46,6 +47,14 @@ class OCRService:
             # Open image from bytes
             original_image = Image.open(io.BytesIO(image_bytes))
             
+            # Resize if too large (speeds up OCR significantly)
+            max_dimension = 1200
+            if max(original_image.size) > max_dimension:
+                ratio = max_dimension / max(original_image.size)
+                new_size = tuple(int(dim * ratio) for dim in original_image.size)
+                original_image = original_image.resize(new_size, Image.Resampling.LANCZOS)
+                logger.info(f"Resized image to {new_size} for faster processing")
+            
             # Convert to RGB if necessary
             if original_image.mode not in ('RGB', 'L'):
                 original_image = original_image.convert('RGB')
@@ -53,53 +62,56 @@ class OCRService:
             # Get language setting
             lang = self.settings.ocr_language or 'hrv'
             
-            # Try multiple OCR strategies
+            # Try multiple OCR strategies (REDUCED for speed)
             results = []
+            best_result = ("", 0.0)
             
-            # Prepare different image versions optimized for price tag text
+            # Prepare image versions (REDUCED to 3 most effective)
             gray = original_image.convert('L')
             
-            # Enhance sharpness first (helps with blurry mobile photos)
-            sharpened = ImageEnhance.Sharpness(gray).enhance(2.0)
+            # Enhance sharpness + contrast (combined for speed)
+            enhanced = ImageEnhance.Sharpness(gray).enhance(1.8)
+            enhanced = ImageEnhance.Contrast(enhanced).enhance(1.5)
             
-            # Moderate contrast (not too aggressive)
-            contrast = ImageEnhance.Contrast(sharpened).enhance(1.5)
+            # Binarized (black and white)
+            binary = self._binarize_otsu(enhanced)
             
-            # Binarized (black and white) - good for clear text
-            binary = self._binarize_otsu(contrast)
-            
-            # Inverted binary (in case text is light on dark)
-            inverted = ImageOps.invert(binary.convert('L')).point(lambda x: 255 if x > 128 else 0, mode='1')
-            
-            # Different PSM modes optimized for price tags:
-            # PSM 3 = Fully automatic page segmentation (best for complex layouts)
-            # PSM 4 = Single column of text (good for vertical price tags)
-            # PSM 6 = Single uniform block of text
-            # PSM 11 = Sparse text (good for price tags with mixed elements)
-            # PSM 12 = Sparse text with OSD
-            
+            # Only 3 most effective PSM modes (REDUCED from 5)
             configs = [
-                '--oem 3 --psm 3',   # Auto (best starting point)
-                '--oem 3 --psm 11',  # Sparse text (good for price tags)
-                '--oem 3 --psm 12',  # Sparse text with orientation detection
-                '--oem 3 --psm 4',   # Single column
+                '--oem 3 --psm 3',   # Auto (works for most cases)
+                '--oem 3 --psm 11',  # Sparse text (price tags)
                 '--oem 3 --psm 6',   # Single block
             ]
             
-            # Try these image versions in priority order
-            images_to_try = [contrast, binary, sharpened, inverted, gray]
+            # Only 3 image versions (REDUCED from 5)
+            images_to_try = [enhanced, binary, gray]
             
+            # Try combinations but stop early if we get good results
             for img in images_to_try:
                 for config in configs:
                     result = self._try_ocr(img, lang, config)
                     if result[0]:  # If we got any text
                         results.append(result)
+                        
+                        # Early exit: if we get good text (5+ words), stop trying
+                        word_count = len(result[0].split())
+                        if word_count >= 5 and result[1] >= 0.6:
+                            logger.info(f"Early exit: found {word_count} words with confidence {result[1]:.2f}")
+                            best_result = result
+                            break
+                
+                # Break outer loop too if we found good result
+                if best_result[0]:
+                    break
             
             # Pick the best result
-            best_text, best_confidence = self._select_best_result(results)
+            if not best_result[0]:
+                best_result = self._select_best_result(results)
+            
+            best_text, best_confidence = best_result
             
             # Clean up
-            del original_image, gray, sharpened, contrast, binary, inverted, image_bytes
+            del original_image, gray, enhanced, binary, image_bytes
             
             logger.info(f"OCR completed. Text: '{best_text}', Confidence: {best_confidence:.2f}")
             
