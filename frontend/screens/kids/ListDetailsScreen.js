@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -12,7 +12,7 @@ import {
   Alert,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
@@ -21,6 +21,8 @@ import {
   verifyShoppingItem,
   completeShoppingItem,
   deleteShoppingList,
+  getChildActiveLists,
+  getChildPendingLists,
 } from "../../api/endpoints";
 
 const ListDetailsScreen = ({ route }) => {
@@ -49,10 +51,47 @@ const ListDetailsScreen = ({ route }) => {
       name: item.text || item.Text || item.name || item.Name || "",
       isCompleted: item.isCompleted || item.IsCompleted || false,
       price: item.price || item.Price || null,
-      // New states for inline price input
-      isVerified: item.isCompleted || item.IsCompleted || false, // Item passed OCR
-      pendingPrice: "", // Price being entered
+      isVerified: item.isCompleted || item.IsCompleted || false,
+      pendingPrice: "",
     }))
+  );
+
+  const refreshFromApi = useCallback(async () => {
+    if (!token) return;
+    try {
+      const [activeRes, pendingRes] = await Promise.all([
+        getChildActiveLists(token),
+        getChildPendingLists(token),
+      ]);
+      const combined = [
+        ...(Array.isArray(activeRes) ? activeRes : []),
+        ...(Array.isArray(pendingRes) ? pendingRes : []),
+      ];
+      const latest = combined.find(
+        (l) => (l.id || l.Id || "").toString() === (list.id || list.Id || "").toString()
+      );
+      if (latest && latest.items) {
+        setItems(
+          latest.items.map((item) => ({
+            id: item.id || item.Id,
+            name: item.text || item.Text || item.name || item.Name || "",
+            isCompleted: item.isCompleted || item.IsCompleted || false,
+            price: item.price || item.Price || null,
+            isVerified: item.isCompleted || item.IsCompleted || false,
+            pendingPrice: "",
+          }))
+        );
+      }
+    } catch (err) {
+      // soft-fail; keep local state
+      console.warn("Failed to refresh list details", err);
+    }
+  }, [token, list.id, list.Id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshFromApi();
+    }, [refreshFromApi])
   );
 
   // Calculate total price of completed items
