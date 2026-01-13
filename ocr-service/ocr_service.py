@@ -56,35 +56,38 @@ class OCRService:
             # Try multiple OCR strategies
             results = []
             
-            # Prepare different image versions
+            # Prepare different image versions optimized for price tag text
             gray = original_image.convert('L')
             
-            # High contrast version
-            contrast = ImageEnhance.Contrast(gray).enhance(2.5)
+            # Enhance sharpness first (helps with blurry mobile photos)
+            sharpened = ImageEnhance.Sharpness(gray).enhance(2.0)
+            
+            # Moderate contrast (not too aggressive)
+            contrast = ImageEnhance.Contrast(sharpened).enhance(1.5)
             
             # Binarized (black and white) - good for clear text
-            binary = self._binarize_otsu(gray)
+            binary = self._binarize_otsu(contrast)
             
             # Inverted binary (in case text is light on dark)
             inverted = ImageOps.invert(binary.convert('L')).point(lambda x: 255 if x > 128 else 0, mode='1')
             
-            # Different PSM modes:
-            # PSM 3 = Fully automatic page segmentation
+            # Different PSM modes optimized for price tags:
+            # PSM 3 = Fully automatic page segmentation (best for complex layouts)
+            # PSM 4 = Single column of text (good for vertical price tags)
             # PSM 6 = Single uniform block of text
-            # PSM 7 = Single text line
-            # PSM 8 = Single word
-            # PSM 11 = Sparse text
-            # PSM 13 = Raw line (no OSD)
+            # PSM 11 = Sparse text (good for price tags with mixed elements)
+            # PSM 12 = Sparse text with OSD
             
             configs = [
+                '--oem 3 --psm 3',   # Auto (best starting point)
+                '--oem 3 --psm 11',  # Sparse text (good for price tags)
+                '--oem 3 --psm 12',  # Sparse text with orientation detection
+                '--oem 3 --psm 4',   # Single column
                 '--oem 3 --psm 6',   # Single block
-                '--oem 3 --psm 7',   # Single line
-                '--oem 3 --psm 8',   # Single word
-                '--oem 3 --psm 11',  # Sparse text
-                '--oem 3 --psm 3',   # Auto
             ]
             
-            images_to_try = [binary, contrast, inverted, gray]
+            # Try these image versions in priority order
+            images_to_try = [contrast, binary, sharpened, inverted, gray]
             
             for img in images_to_try:
                 for config in configs:
@@ -96,7 +99,7 @@ class OCRService:
             best_text, best_confidence = self._select_best_result(results)
             
             # Clean up
-            del original_image, gray, contrast, binary, inverted, image_bytes
+            del original_image, gray, sharpened, contrast, binary, inverted, image_bytes
             
             logger.info(f"OCR completed. Text: '{best_text}', Confidence: {best_confidence:.2f}")
             
@@ -158,8 +161,12 @@ class OCRService:
         try:
             raw_text = pytesseract.image_to_string(image, lang=lang, config=config)
             
-            # Clean and filter the text
+            logger.debug(f"Raw OCR output: '{raw_text[:100]}...'")
+            
+            # Clean and filter the text (minimal filtering now)
             clean_text = self._clean_and_filter(raw_text)
+            
+            logger.debug(f"Cleaned OCR text: '{clean_text}'")
             
             # Calculate confidence
             confidence = self._calculate_confidence(clean_text)
@@ -171,11 +178,15 @@ class OCRService:
     
     def _clean_and_filter(self, text: str) -> str:
         """
-        Clean OCR output and filter out garbage.
-        Only keeps valid, readable words.
+        Clean OCR output with minimal filtering.
+        Extract all readable text and let AI determine relevance.
         """
         if not text:
             return ""
+        
+        # Remove excessive whitespace and normalize
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        text = ' '.join(lines)
         
         # Split into words
         words = text.split()
@@ -183,39 +194,28 @@ class OCRService:
         valid_words = []
         
         for word in words:
-            # Clean the word
-            cleaned = self._clean_word(word)
-            
-            if not cleaned:
+            # Skip very short "words" (likely noise)
+            if len(word) < 2:
                 continue
             
-            # Skip if too short
-            if len(cleaned) < 2:
+            # Skip pure numbers and barcodes (all digits)
+            if word.isdigit() and len(word) > 6:
                 continue
             
-            # Skip if it's garbage (too many consonants, repeating chars, etc.)
-            if self._is_garbage(cleaned):
-                continue
-            
-            # Skip prices and numbers
-            if self._is_price_or_number(cleaned):
-                continue
-            
-            # Skip currency
-            if cleaned.upper() in ('KM', 'BAM', 'EUR', 'HRK', 'RSD', 'DIN', 'USD'):
-                continue
-            
-            valid_words.append(cleaned)
+            # Keep everything else - including mixed alphanumeric
+            # AI will determine if it's the product name
+            valid_words.append(word)
         
         return ' '.join(valid_words)
     
     def _clean_word(self, word: str) -> str:
         """
-        Clean a single word - remove punctuation, keep letters only.
+        Clean a single word - minimal cleaning, preserve most characters.
         """
-        # Keep only letters (including Croatian: čćđšž)
-        cleaned = ''.join(c for c in word if c.isalpha())
-        return cleaned.strip()
+        # Keep letters, numbers, and common characters
+        # This preserves product codes, percentages, etc.
+        cleaned = ''.join(c for c in word if c.isalnum() or c in '%.-')
+        return cleaned.strip('.-')
     
     def _is_garbage(self, word: str) -> bool:
         """
@@ -286,7 +286,7 @@ class OCRService:
     
     def _calculate_confidence(self, text: str) -> float:
         """
-        Calculate confidence based on text quality.
+        Calculate confidence based on text quantity and quality.
         """
         if not text:
             return 0.0
@@ -296,28 +296,24 @@ class OCRService:
         if not words:
             return 0.0
         
-        # Score based on word quality
-        total_score = 0
+        # Base confidence on having extracted text
+        base_confidence = 0.5
         
-        for word in words:
-            word_len = len(word)
-            
-            # Longer words are more likely to be real
-            if word_len >= 5:
-                total_score += 3
-            elif word_len >= 3:
-                total_score += 2
-            else:
-                total_score += 1
+        # Bonus for more words (up to a point)
+        word_bonus = min(len(words) * 0.05, 0.3)
         
-        # Normalize to 0-1 range
-        confidence = min(total_score / 10, 1.0)
+        # Bonus for longer words (suggests real text, not noise)
+        avg_word_len = sum(len(w) for w in words) / len(words)
+        length_bonus = min(avg_word_len * 0.03, 0.2)
         
-        return confidence
+        confidence = base_confidence + word_bonus + length_bonus
+        
+        # Clamp to 0-1 range
+        return min(max(confidence, 0.1), 1.0)
     
     def _select_best_result(self, results: List[Tuple[str, float]]) -> Tuple[str, float]:
         """
-        Select the best OCR result.
+        Select the best OCR result - prefer results with more readable text.
         """
         if not results:
             return ("", 0.0)
@@ -332,16 +328,16 @@ class OCRService:
         scored = []
         for text, conf in valid_results:
             words = text.split()
-            
-            # Prefer results with fewer, longer words (more likely to be real product names)
-            avg_word_len = sum(len(w) for w in words) / len(words) if words else 0
             word_count = len(words)
+            total_chars = sum(len(w) for w in words)
             
-            # Score: prefer longer average word length, reasonable word count
-            if word_count <= 5:  # Reasonable number of words
-                score = avg_word_len * 2 + conf * 5
-            else:
-                score = avg_word_len + conf * 3  # Penalize too many words (likely noise)
+            # Prefer results with more text (more information for AI to work with)
+            # But also consider the confidence
+            char_score = total_chars * 0.5  # More characters = better
+            word_score = word_count * 2     # More words = better
+            conf_score = conf * 10           # Confidence matters
+            
+            score = char_score + word_score + conf_score
             
             scored.append((text, conf, score))
         

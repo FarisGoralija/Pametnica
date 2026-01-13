@@ -27,13 +27,22 @@ SYSTEM_PROMPT = """Ti si AI asistent specijaliziran za verifikaciju kupovine u b
 
 Tvoj zadatak je utvrditi da li tekst sa cjenovnika/etikete proizvoda SEMANTIČKI ODGOVARA traženom artiklu sa liste za kupovinu.
 
+VAŽNO: Tekst sa cjenovnika može biti NEPRECIZAN ili DJELOMIČAN zbog OCR-a. Tvoj zadatak je pronaći SEMANTIČKO PODUDARANJE čak i kad je tekst loše očitan.
+
 PRAVILA:
 1. Koristi SEMANTIČKO podudaranje, NE tačno podudaranje stringova
-2. "mlijeko" se podudara sa "Svježe punomasno mlijeko 2.7%" (isti proizvod, različiti opisi)
-3. "kruh" se podudara sa "Bijeli kruh 500g" ili "Domaći kruh"
-4. "jogurt" se podudara sa "Jogurt voćni 150g" ili "Meggle jogurt"
-5. NE podudara se ako je potpuno drugačija kategorija proizvoda (npr. "mlijeko" ≠ "čokolada")
-6. Uzmi u obzir uobičajene skraćenice i varijante (npr. "jaja" = "jaje", "jabuke" = "jabuka")
+2. "mlijeko" se podudara sa "Svježe punomasno mlijeko 2.7%" ili čak "mlko" ili "mlije"
+3. "hljeb" ili "kruh" se podudara sa "Bijeli kruh 500g", "hleb", "hljep", "Domaći kruh"
+4. "jogurt" se podudara sa "Jogurt voćni 150g", "jogrt", "jogur", "Meggle jogurt"
+5. Toleriši OCR greške: slova mogu biti zamijenjena (o→a, i→l, rn→m, itd.)
+6. NE podudara se SAMO ako je OČIGLEDNO drugačija kategorija proizvoda
+7. Uzmi u obzir uobičajene skraćenice, varijante i množinu (npr. "jaja" = "jaje", "jabuke" = "jabuka")
+8. Tekst može sadržavati dodatne informacije (cijene, težine, sastojke) - to je u redu
+9. Budi TOLERANTAN - ako postoji BILO KAKVA šansa da je to isti proizvod, prihvati ga
+
+KADA ODBITI:
+- Samo kada je OČIGLEDNO potpuno druga vrsta proizvoda
+- Npr: tražimo "mlijeko" a tekst sadrži samo "čokolada torta" (nema riječi sličnih "mlijeko")
 
 ODGOVORI ISKLJUČIVO U JSON FORMATU:
 {
@@ -44,9 +53,11 @@ ODGOVORI ISKLJUČIVO U JSON FORMATU:
 
 PRIMJERI:
 - Artikal: "mlijeko", OCR: "Dukat svježe mlijeko 1L" → is_match: true, confidence: 0.95
+- Artikal: "hljeb", OCR: "hleb bijeli 500g" → is_match: true, confidence: 0.90 (OCR greška, ali očigledno hljeb)
 - Artikal: "kruh", OCR: "Čokoladna torta" → is_match: false, confidence: 0.98
 - Artikal: "sir", OCR: "Mladi sir 250g" → is_match: true, confidence: 0.92
-- Artikal: "jabuke", OCR: "Zlatni delišes jabuka 1kg" → is_match: true, confidence: 0.90"""
+- Artikal: "jabuke", OCR: "Zlatni delišes jabuka 1kg" → is_match: true, confidence: 0.90
+- Artikal: "jogurt", OCR: "jogrt vocni 150" → is_match: true, confidence: 0.85 (OCR greška ali jasno jogurt)"""
 
 
 class AIVerificationService:
@@ -107,8 +118,8 @@ Da li se tekst sa cjenovnika SEMANTIČKI PODUDARA sa artiklom sa liste?"""
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": user_message}
                 ],
-                temperature=0.1,  # Low temperature for consistent results
-                max_tokens=200,
+                temperature=0.2,  # Slightly higher for more flexible matching
+                max_tokens=250,
                 response_format={"type": "json_object"}  # Enforce JSON response
             )
             
@@ -144,17 +155,17 @@ Da li se tekst sa cjenovnika SEMANTIČKI PODUDARA sa artiklom sa liste?"""
     
     def verify_match_fallback(self, item_name: str, ocr_text: str) -> AIVerificationResult:
         """
-        Fallback verification using simple keyword matching.
+        Fallback verification using fuzzy keyword matching.
         
         Used when AI service is unavailable or fails.
-        Less accurate but provides basic functionality.
+        More lenient to handle OCR errors.
         
         Args:
             item_name: Shopping list item name
             ocr_text: Text extracted from price tag
             
         Returns:
-            AIVerificationResult based on keyword matching
+            AIVerificationResult based on fuzzy keyword matching
         """
         logger.warning("Using fallback verification (AI service unavailable)")
         
@@ -162,10 +173,9 @@ Da li se tekst sa cjenovnika SEMANTIČKI PODUDARA sa artiklom sa liste?"""
         item_lower = item_name.lower().strip()
         ocr_lower = ocr_text.lower()
         
-        # Simple substring matching
+        # Simple substring matching (exact)
         is_match = item_lower in ocr_lower
         
-        # Higher confidence for exact substring match
         if is_match:
             # Check if it's a word boundary match
             import re
@@ -177,9 +187,35 @@ Da li se tekst sa cjenovnika SEMANTIČKI PODUDARA sa artiklom sa liste?"""
                 confidence = 0.7
                 reasoning = f"Pronađeno djelomično podudaranje: '{item_name}' u tekstu."
         else:
-            confidence = 0.6
-            reasoning = f"Artikal '{item_name}' nije pronađen u tekstu sa cjenovnika."
-            is_match = False
+            # Try fuzzy matching for OCR errors
+            # Check if most characters match
+            import re
+            words = ocr_text.split()
+            best_match_ratio = 0.0
+            
+            for word in words:
+                word_lower = word.lower()
+                # Remove special chars for comparison
+                word_clean = re.sub(r'[^a-z0-9čćđšž]', '', word_lower)
+                item_clean = re.sub(r'[^a-z0-9čćđšž]', '', item_lower)
+                
+                if len(word_clean) < 3 or len(item_clean) < 3:
+                    continue
+                
+                # Calculate similarity (simple character overlap)
+                matches = sum(1 for c in item_clean if c in word_clean)
+                ratio = matches / len(item_clean)
+                best_match_ratio = max(best_match_ratio, ratio)
+            
+            # If 70%+ characters match, consider it a match (OCR errors)
+            if best_match_ratio >= 0.7:
+                is_match = True
+                confidence = 0.6 + (best_match_ratio * 0.2)
+                reasoning = f"Pronađeno podudaranje sa OCR greškama: '{item_name}' (~{best_match_ratio*100:.0f}% sličnost)."
+            else:
+                is_match = False
+                confidence = 0.5
+                reasoning = f"Artikal '{item_name}' nije pronađen u tekstu sa cjenovnika."
         
         return AIVerificationResult(
             is_match=is_match,
