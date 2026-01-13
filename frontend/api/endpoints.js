@@ -613,3 +613,90 @@ export async function updateShoppingListItem(
 
   return data;
 }
+
+/**
+ * Verify a shopping item using OCR + AI semantic matching.
+ * 
+ * This function:
+ * 1. Sends a base64-encoded image of a price tag to the backend
+ * 2. Backend forwards to OCR service for text extraction
+ * 3. AI verifies if the price tag matches the shopping item
+ * 4. Returns verification result with confidence score
+ * 
+ * IMPORTANT: Image is processed in-memory only and never stored.
+ * 
+ * @param {string} listId - Shopping list ID
+ * @param {string} itemId - Shopping item ID to verify
+ * @param {string} imageBase64 - Base64-encoded image of the price tag
+ * @param {string} token - Child authentication token
+ * @returns {Promise<{isMatch: boolean, confidence: number, ocrText: string, extractedPrice: string|null, message: string}>}
+ */
+export async function verifyShoppingItem(listId, itemId, imageBase64, token) {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(
+    `${endpoints.shoppingLists}/${encodeURIComponent(
+      listId
+    )}/items/${encodeURIComponent(itemId)}/verify`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ imageBase64 }),
+    }
+  );
+
+  const data = await parseJsonSafely(response);
+  if (!response.ok) {
+    const message =
+      (data && typeof data === "object" && (data.error || data.message)) ||
+      (typeof data === "string" ? data : null) ||
+      "Verifikacija artikla nije uspjela.";
+    const prefix = response.status ? `${response.status}: ` : "";
+    throw new Error(`${prefix}${message}`);
+  }
+
+  return data;
+}
+
+/**
+ * Complete a shopping item after successful verification.
+ * Call this after verifyShoppingItem returns isMatch: true.
+ * 
+ * @param {string} listId - Shopping list ID
+ * @param {string} itemId - Shopping item ID
+ * @param {number} price - Price entered by the child
+ * @param {string} token - Child authentication token
+ * @returns {Promise<object>} Updated shopping list
+ */
+export async function completeShoppingItem(listId, itemId, price, token) {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(
+    `${endpoints.shoppingLists}/${encodeURIComponent(
+      listId
+    )}/items/${encodeURIComponent(itemId)}/complete`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ price }),
+    }
+  );
+
+  const data = await parseJsonSafely(response);
+  if (!response.ok) {
+    const message =
+      (data && typeof data === "object" && (data.error || data.message)) ||
+      (typeof data === "string" ? data : null) ||
+      "Označavanje stavke kao kupljene nije uspjelo.";
+    const prefix = response.status ? `${response.status}: ` : "";
+    throw new Error(`${prefix}${message}`);
+  }
+
+  return data;
+}

@@ -524,4 +524,29 @@ public class ShoppingListService(
         Price = item.Price,
         IsCompleted = item.IsCompleted
     };
+
+    public async Task<ServiceResult<ShoppingListItemDto>> GetItemAsync(string childId, Guid listId, Guid itemId)
+    {
+        var list = await dbContext.ShoppingLists
+            .Include(l => l.Items)
+            .FirstOrDefaultAsync(l => l.Id == listId);
+
+        if (list is null)
+        {
+            return ServiceResult<ShoppingListItemDto>.Fail("List not found.", StatusCodes.Status404NotFound);
+        }
+
+        if (!string.Equals(list.ChildId, childId, StringComparison.OrdinalIgnoreCase))
+        {
+            return ServiceResult<ShoppingListItemDto>.Fail("Forbidden.", StatusCodes.Status403Forbidden);
+        }
+
+        var item = list.Items.FirstOrDefault(i => i.Id == itemId);
+        if (item is null)
+        {
+            return ServiceResult<ShoppingListItemDto>.Fail("Item not found.", StatusCodes.Status404NotFound);
+        }
+
+        return ServiceResult<ShoppingListItemDto>.Ok(ToDto(item));
+    }
 }

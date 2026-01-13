@@ -181,7 +181,7 @@ const ListsScreen = () => {
             }
             lists={activeLists}
             onCardPress={(list) =>
-              navigation.replace("ListDetailsScreen", { list })
+              navigation.replace("ListDetailsScreen", { list, source: "active" })
             }
             renderExtraAction={(list) => (
               <TouchableOpacity
@@ -212,7 +212,7 @@ const ListsScreen = () => {
             }
             lists={pendingLists}
             onCardPress={(list) =>
-              navigation.replace("ListDetailsScreen", { list })
+              navigation.replace("ListDetailsScreen", { list, source: "pending" })
             }
             renderExtraAction={(list) => (
               <TouchableOpacity
