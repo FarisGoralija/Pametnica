@@ -225,9 +225,15 @@ const ListDetailsScreen = ({ route }) => {
       );
     } catch (error) {
       console.error("Complete list error:", error);
-      setErrorMessage(
-        error.message || "Nije moguće završiti kupovinu. Pokušajte ponovo."
-      );
+      
+      // Check if it's an insufficient balance error
+      const errorMsg = error.message || "";
+      if (errorMsg.includes("Insufficient balance") || errorMsg.includes("nedovoljno") || errorMsg.includes("balance")) {
+        setErrorMessage("You do not have enough money.");
+      } else {
+        setErrorMessage(errorMsg || "Nije moguće završiti kupovinu. Pokušajte ponovo.");
+      }
+      
       setShowErrorModal(true);
     } finally {
       setCompletingList(false);
@@ -355,17 +361,21 @@ const ListDetailsScreen = ({ route }) => {
         {/* TITLE */}
         <Text style={styles.listTitle}>{list.title}</Text>
 
-        {/* ITEMS */}
-        <ScrollView
-          contentContainerStyle={styles.itemsWrapper}
-          showsVerticalScrollIndicator={false}
-        >
-          {items.length === 0 ? (
-            <Text style={styles.emptyText}>Ova lista nema stavki</Text>
-          ) : (
-            items.map((item) => renderItemCard(item))
-          )}
-        </ScrollView>
+        {/* ITEMS - Max 4 visible, scrollable if more */}
+        <View style={styles.itemsContainer}>
+          <ScrollView
+            style={styles.itemsScrollView}
+            contentContainerStyle={styles.itemsWrapper}
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}
+          >
+            {items.length === 0 ? (
+              <Text style={styles.emptyText}>Ova lista nema stavki</Text>
+            ) : (
+              items.map((item) => renderItemCard(item))
+            )}
+          </ScrollView>
+        </View>
       </View>
 
       {/* TOTAL & COMPLETE BUTTON - Only for active lists */}
@@ -418,18 +428,24 @@ const ListDetailsScreen = ({ route }) => {
             {/* Error header */}
             <View style={styles.modalHeader}>
               <Text style={styles.errorEmoji}>❌</Text>
-              <Text style={styles.modalTitle}>Neuspješna verifikacija</Text>
+              <Text style={styles.modalTitle}>
+                {errorMessage === "You do not have enough money." 
+                  ? "Nedovoljno novca" 
+                  : "Neuspješna verifikacija"}
+              </Text>
             </View>
 
             {/* Error message */}
             <Text style={styles.errorMessageText}>{errorMessage}</Text>
 
-            {/* Close button */}
+            {/* Close button - OK for insufficient balance, Zatvori for others */}
             <TouchableOpacity
               style={styles.closeButton}
               onPress={handleCloseErrorModal}
             >
-              <Text style={styles.closeButtonText}>Zatvori</Text>
+              <Text style={styles.closeButtonText}>
+                {errorMessage === "You do not have enough money." ? "OK" : "Zatvori"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -456,6 +472,7 @@ const styles = StyleSheet.create({
     padding: 18,
     elevation: 4,
     flex: 1,
+    marginBottom: 10,
   },
 
   listTitle: {
@@ -463,6 +480,14 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#4A4A4A",
     marginBottom: 14,
+  },
+
+  itemsContainer: {
+    flex: 1,
+  },
+
+  itemsScrollView: {
+    maxHeight: 320, // ~4 items visible (each item ~70px + spacing)
   },
 
   itemsWrapper: {
@@ -582,7 +607,7 @@ const styles = StyleSheet.create({
   /* BOTTOM SECTION */
   bottomSection: {
     padding: 16,
-    paddingBottom: Platform.OS === "ios" ? 34 : 16,
+    paddingBottom: Platform.OS === "ios" ? 100 : 80, // Increased to clear tab navigator
     backgroundColor: "#FFFFFF",
   },
 
