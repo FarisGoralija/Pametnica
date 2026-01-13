@@ -4,9 +4,9 @@ Handles image processing and text extraction using Tesseract OCR.
 
 The service is designed to:
 - Process images in-memory only (no file system storage)
-- Support multiple languages (English + Croatian/Bosnian)
-- Try multiple OCR strategies to get the best result
-- Extract both product names and prices from price tags
+- Support Bosnian/Croatian text recognition
+- Focus on detecting product names and words (NOT prices)
+- Filter out numeric values and currency symbols
 """
 
 import base64
@@ -15,7 +15,7 @@ import re
 import logging
 from typing import Optional, Tuple, List
 
-from PIL import Image, ImageEnhance, ImageFilter, ImageOps
+from PIL import Image, ImageEnhance, ImageOps
 import pytesseract
 
 from config import get_settings
@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 class OCRService:
     """
-    Service for extracting text from price tag images.
+    Service for extracting product names from price tag images.
     
-    Uses Tesseract OCR with multiple strategies to maximize accuracy.
-    Tries different preprocessing and configuration combinations.
+    Uses Tesseract OCR with Croatian/Bosnian language.
+    Focuses on extracting words, NOT prices or numbers.
     """
     
     def __init__(self):
@@ -37,18 +37,15 @@ class OCRService:
     
     def process_image(self, image_base64: str) -> OCRResult:
         """
-        Process a base64-encoded image and extract text.
+        Process a base64-encoded image and extract product names/words.
         
-        Tries multiple OCR strategies and returns the best result.
+        Filters out prices and numeric values - only returns text words.
         
         Args:
             image_base64: Base64-encoded image (PNG/JPEG)
             
         Returns:
-            OCRResult with extracted text and confidence
-            
-        Note:
-            Image is processed entirely in-memory and discarded after processing.
+            OCRResult with extracted text (words only, no prices)
         """
         try:
             # Decode base64 to bytes (in-memory)
@@ -57,64 +54,48 @@ class OCRService:
             # Open image from bytes (no file system access)
             original_image = Image.open(io.BytesIO(image_bytes))
             
-            # Convert to RGB if necessary (some images might be RGBA or other modes)
+            # Convert to RGB if necessary
             if original_image.mode not in ('RGB', 'L'):
                 original_image = original_image.convert('RGB')
+            
+            # Get language setting (default: Croatian/Bosnian)
+            lang = self.settings.ocr_language or 'hrv'
             
             # Try multiple OCR strategies and pick the best result
             results = []
             
-            # Strategy 1: Original image with English
-            results.append(self._try_ocr(original_image, 'eng', '--oem 3 --psm 3'))
+            # Strategy 1: Original image, automatic page segmentation
+            results.append(self._try_ocr(original_image, lang, '--oem 3 --psm 3'))
             
-            # Strategy 2: Original image with English, single block
-            results.append(self._try_ocr(original_image, 'eng', '--oem 3 --psm 6'))
+            # Strategy 2: Original image, single block of text
+            results.append(self._try_ocr(original_image, lang, '--oem 3 --psm 6'))
             
-            # Strategy 3: Grayscale with English
+            # Strategy 3: Grayscale image
             gray_image = self._to_grayscale(original_image)
-            results.append(self._try_ocr(gray_image, 'eng', '--oem 3 --psm 3'))
+            results.append(self._try_ocr(gray_image, lang, '--oem 3 --psm 3'))
+            results.append(self._try_ocr(gray_image, lang, '--oem 3 --psm 6'))
             
-            # Strategy 4: High contrast grayscale with English
+            # Strategy 4: High contrast grayscale
             contrast_image = self._enhance_contrast(gray_image)
-            results.append(self._try_ocr(contrast_image, 'eng', '--oem 3 --psm 6'))
+            results.append(self._try_ocr(contrast_image, lang, '--oem 3 --psm 3'))
+            results.append(self._try_ocr(contrast_image, lang, '--oem 3 --psm 6'))
             
-            # Strategy 5: Binarized (black and white) with English
+            # Strategy 5: Binarized (black and white)
             binary_image = self._binarize(gray_image)
-            results.append(self._try_ocr(binary_image, 'eng', '--oem 3 --psm 6'))
+            results.append(self._try_ocr(binary_image, lang, '--oem 3 --psm 6'))
             
-            # Strategy 6: Try with Croatian for local products
-            lang = self.settings.ocr_language
-            if lang and lang != 'eng':
-                results.append(self._try_ocr(original_image, lang, '--oem 3 --psm 3'))
-                results.append(self._try_ocr(gray_image, lang, '--oem 3 --psm 6'))
-            
-            # Strategy 7: Try combined English + Croatian
-            try:
-                combined_lang = f'eng+{lang}' if lang and lang != 'eng' else 'eng'
-                results.append(self._try_ocr(contrast_image, combined_lang, '--oem 3 --psm 3'))
-            except:
-                pass  # Combined language might not be available
-            
-            # Pick the best result (longest meaningful text with reasonable confidence)
-            best_result = self._select_best_result(results)
-            
-            # Try to extract price from the text
-            extracted_price = self._extract_price(best_result[0])
+            # Pick the best result (most meaningful words)
+            best_text, best_confidence = self._select_best_result(results)
             
             # Clean up
-            del original_image
-            del gray_image
-            del contrast_image
-            del binary_image
-            del image_bytes
+            del original_image, gray_image, contrast_image, binary_image, image_bytes
             
-            logger.info(f"OCR completed. Text length: {len(best_result[0])}, Confidence: {best_result[1]:.2f}")
-            logger.info(f"Extracted text: '{best_result[0][:200]}...' " if len(best_result[0]) > 200 else f"Extracted text: '{best_result[0]}'")
+            logger.info(f"OCR completed. Text: '{best_text}', Confidence: {best_confidence:.2f}")
             
             return OCRResult(
-                text=best_result[0],
-                confidence=best_result[1],
-                extracted_price=extracted_price
+                text=best_text,
+                confidence=best_confidence,
+                extracted_price=None  # We don't extract prices anymore
             )
             
         except Exception as e:
@@ -124,83 +105,155 @@ class OCRService:
     def _try_ocr(self, image: Image.Image, lang: str, config: str) -> Tuple[str, float]:
         """
         Try OCR with specific language and configuration.
-        
-        Returns:
-            Tuple of (extracted_text, confidence)
+        Returns only words (filters out prices and numbers).
         """
         try:
-            # Use image_to_string for simpler, more reliable extraction
-            text = pytesseract.image_to_string(image, lang=lang, config=config)
+            # Extract raw text
+            raw_text = pytesseract.image_to_string(image, lang=lang, config=config)
             
-            # Clean up the text
-            text = self._clean_text(text)
+            # Filter to keep only words (remove prices, numbers, symbols)
+            words_only = self._extract_words_only(raw_text)
             
-            # Calculate a simple confidence based on text quality
-            confidence = self._estimate_confidence(text)
+            # Calculate confidence based on word quality
+            confidence = self._estimate_confidence(words_only)
             
-            return (text, confidence)
+            return (words_only, confidence)
         except Exception as e:
-            logger.debug(f"OCR attempt failed with lang={lang}, config={config}: {e}")
+            logger.debug(f"OCR attempt failed: {e}")
             return ("", 0.0)
     
-    def _clean_text(self, text: str) -> str:
+    def _extract_words_only(self, text: str) -> str:
         """
-        Clean up OCR output text.
+        Extract only alphabetic words from OCR text.
+        Filters out:
+        - Prices (12,99 KM, €3.50, etc.)
+        - Numbers
+        - Currency symbols
+        - Single characters (noise)
+        - Special characters
+        
+        Keeps:
+        - Product names (mlijeko, hljeb, jogurt, etc.)
+        - Alphabetic words (2+ characters)
         """
         if not text:
             return ""
         
-        # Remove excessive whitespace
-        text = ' '.join(text.split())
+        # Split into tokens
+        tokens = text.split()
         
-        # Remove isolated single characters that are likely noise
-        words = text.split()
-        cleaned_words = [w for w in words if len(w) > 1 or w.isdigit() or w in '€$']
+        # Filter to keep only valid words
+        valid_words = []
         
-        return ' '.join(cleaned_words)
+        for token in tokens:
+            # Clean the token
+            cleaned = self._clean_token(token)
+            
+            # Skip if empty after cleaning
+            if not cleaned:
+                continue
+            
+            # Skip if it's a price pattern
+            if self._is_price(cleaned):
+                continue
+            
+            # Skip if it's mostly numbers
+            if self._is_numeric(cleaned):
+                continue
+            
+            # Skip single characters (likely noise)
+            if len(cleaned) < 2:
+                continue
+            
+            # Skip currency symbols and abbreviations
+            if cleaned.upper() in ('KM', 'BAM', 'EUR', 'HRK', 'RSD', 'DIN'):
+                continue
+            
+            # Keep valid words
+            valid_words.append(cleaned)
+        
+        return ' '.join(valid_words)
+    
+    def _clean_token(self, token: str) -> str:
+        """
+        Clean a token by removing non-alphabetic characters from edges.
+        Keeps Croatian/Bosnian special characters: č, ć, đ, š, ž
+        """
+        # Remove leading/trailing punctuation and special chars
+        # Keep letters (including Croatian: čćđšž)
+        cleaned = token.strip('.,;:!?()[]{}"\'-_=+*/\\|<>@#$%^&~`')
+        
+        # Remove any remaining non-letter characters from edges
+        while cleaned and not cleaned[0].isalpha():
+            cleaned = cleaned[1:]
+        while cleaned and not cleaned[-1].isalpha():
+            cleaned = cleaned[:-1]
+        
+        return cleaned
+    
+    def _is_price(self, text: str) -> bool:
+        """Check if text looks like a price."""
+        # Price patterns
+        price_patterns = [
+            r'^\d+[,\.]\d{2}$',          # 12,99 or 12.99
+            r'^\d+[,\.]\d{2}\s*KM',      # 12,99 KM
+            r'^\d+[,\.]\d{2}\s*€',       # 12,99 €
+            r'^€?\d+[,\.]\d{2}',         # €12,99
+            r'^\d+\s*(KM|EUR|BAM|kn)$',  # 12 KM
+        ]
+        
+        for pattern in price_patterns:
+            if re.match(pattern, text, re.IGNORECASE):
+                return True
+        
+        return False
+    
+    def _is_numeric(self, text: str) -> bool:
+        """Check if text is mostly numbers."""
+        if not text:
+            return False
+        
+        # Count digits vs letters
+        digits = sum(1 for c in text if c.isdigit())
+        letters = sum(1 for c in text if c.isalpha())
+        
+        # If more than 50% digits, consider it numeric
+        total = digits + letters
+        if total == 0:
+            return True
+        
+        return digits / total > 0.5
     
     def _estimate_confidence(self, text: str) -> float:
         """
         Estimate confidence based on text quality.
-        
-        Higher confidence for:
-        - Longer text
-        - More alphabetic characters
-        - Fewer special characters
+        Higher confidence for more valid words.
         """
         if not text:
             return 0.0
         
-        # Count different character types
-        alpha_count = sum(1 for c in text if c.isalpha())
-        digit_count = sum(1 for c in text if c.isdigit())
-        space_count = sum(1 for c in text if c.isspace())
-        special_count = len(text) - alpha_count - digit_count - space_count
+        words = text.split()
         
-        total_meaningful = alpha_count + digit_count
-        
-        if total_meaningful == 0:
+        if not words:
             return 0.0
         
-        # Calculate ratio of meaningful characters
-        meaningful_ratio = total_meaningful / len(text.replace(' ', ''))
+        # Count valid words (3+ characters, all letters)
+        valid_word_count = sum(1 for w in words if len(w) >= 3 and w.isalpha())
         
-        # Bonus for having actual words (3+ letter sequences)
-        word_count = len([w for w in text.split() if len(w) >= 3 and w.isalpha()])
-        word_bonus = min(word_count * 0.1, 0.3)
-        
-        confidence = min(meaningful_ratio + word_bonus, 1.0)
-        
-        return confidence
+        # Base confidence on valid word count
+        if valid_word_count == 0:
+            return 0.1
+        elif valid_word_count == 1:
+            return 0.5
+        elif valid_word_count == 2:
+            return 0.7
+        else:
+            return 0.85
     
     def _select_best_result(self, results: List[Tuple[str, float]]) -> Tuple[str, float]:
         """
         Select the best OCR result from multiple attempts.
-        
-        Prioritizes:
-        1. Results with actual readable words
-        2. Longer text (more information)
-        3. Higher estimated confidence
+        Prioritizes results with more valid words.
         """
         if not results:
             return ("", 0.0)
@@ -211,14 +264,17 @@ class OCRService:
         if not valid_results:
             return ("", 0.0)
         
-        # Score each result
+        # Score each result based on word quality
         scored_results = []
         for text, conf in valid_results:
-            # Count words with 3+ letters
-            word_count = len([w for w in text.split() if len(w) >= 3])
+            words = text.split()
             
-            # Score based on word count, text length, and confidence
-            score = (word_count * 10) + (len(text) * 0.1) + (conf * 20)
+            # Count words by length
+            long_words = sum(1 for w in words if len(w) >= 4)  # mlijeko, jogurt
+            medium_words = sum(1 for w in words if 2 <= len(w) < 4)  # sir, sok
+            
+            # Score: prioritize longer, meaningful words
+            score = (long_words * 10) + (medium_words * 3) + conf
             
             scored_results.append((text, conf, score))
         
@@ -238,47 +294,10 @@ class OCRService:
         return enhancer.enhance(2.0)
     
     def _binarize(self, image: Image.Image) -> Image.Image:
-        """
-        Convert image to black and white using adaptive thresholding.
-        """
-        # Ensure grayscale
+        """Convert image to black and white."""
         if image.mode != 'L':
             image = image.convert('L')
         
-        # Use Otsu-like thresholding via autocontrast + point
         image = ImageOps.autocontrast(image)
-        
-        # Threshold to black and white
         threshold = 128
         return image.point(lambda x: 255 if x > threshold else 0, mode='1')
-    
-    def _extract_price(self, text: str) -> Optional[str]:
-        """
-        Attempt to extract price from OCR text.
-        
-        Looks for common price patterns:
-        - "12,99 KM" or "12.99 KM"
-        - "12,99" or "12.99"
-        - Currency symbols: €, $, KM, BAM
-        """
-        if not text:
-            return None
-            
-        # Common price patterns for Bosnian market
-        patterns = [
-            # Price with currency: "12,99 KM" or "12.99 KM"
-            r'(\d+[,\.]\d{2})\s*(KM|BAM|€|EUR|kn|HRK)',
-            # Currency before price
-            r'(KM|BAM|€|EUR|kn|HRK)\s*(\d+[,\.]\d{2})',
-            # Just decimal number (likely price)
-            r'(\d{1,3}[,\.]\d{2})',
-            # Whole number with currency
-            r'(\d+)\s*(KM|BAM|€|EUR|kn|HRK)',
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                return match.group(0).strip()
-        
-        return None
