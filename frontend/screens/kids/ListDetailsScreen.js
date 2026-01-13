@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -6,18 +6,22 @@ import {
   ScrollView,
   Platform,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   TextInput,
   Modal,
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import { useAuth } from "../../context/AuthContext";
-import { verifyShoppingItem, completeShoppingItem } from "../../api/endpoints";
+import {
+  verifyShoppingItem,
+  completeShoppingItem,
+  deleteShoppingList,
+} from "../../api/endpoints";
 
 const ListDetailsScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -29,21 +33,36 @@ const ListDetailsScreen = ({ route }) => {
 
   // State for OCR verification
   const [verifyingItemId, setVerifyingItemId] = useState(null);
-  const [verificationResult, setVerificationResult] = useState(null);
-  const [showPriceModal, setShowPriceModal] = useState(false);
-  const [priceInput, setPriceInput] = useState("");
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [completingItem, setCompletingItem] = useState(false);
+  const [completingItemId, setCompletingItemId] = useState(null);
 
-  // Local state for items (to track completed ones)
+  // State for error modal (when OCR doesn't match)
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // State for completing list
+  const [completingList, setCompletingList] = useState(false);
+
+  // Local state for items (to track completed ones and pending prices)
   const [items, setItems] = useState(
     (list.items || []).map((item) => ({
       id: item.id || item.Id,
       name: item.text || item.Text || item.name || item.Name || "",
       isCompleted: item.isCompleted || item.IsCompleted || false,
       price: item.price || item.Price || null,
+      // New states for inline price input
+      isVerified: item.isCompleted || item.IsCompleted || false, // Item passed OCR
+      pendingPrice: "", // Price being entered
     }))
   );
+
+  // Calculate total price of completed items
+  const totalPrice = items
+    .filter((item) => item.isCompleted && item.price)
+    .reduce((sum, item) => sum + item.price, 0);
+
+  // Check if all items are completed with prices
+  const allItemsCompleted =
+    items.length > 0 && items.every((item) => item.isCompleted && item.price);
 
   /**
    * Request camera permissions
@@ -51,11 +70,10 @@ const ListDetailsScreen = ({ route }) => {
   const requestCameraPermission = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
-        "Potrebna dozvola",
-        "Molimo omogućite pristup kameri u postavkama uređaja kako biste mogli skenirati cjenovnike.",
-        [{ text: "U redu" }]
+      setErrorMessage(
+        "Molimo omogućite pristup kameri u postavkama uređaja kako biste mogli skenirati cjenovnike."
       );
+      setShowErrorModal(true);
       return false;
     }
     return true;
@@ -66,7 +84,6 @@ const ListDetailsScreen = ({ route }) => {
    * Opens camera and processes the captured image
    */
   const handleCameraPress = async (item) => {
-    // Request camera permission
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) return;
 
@@ -75,25 +92,21 @@ const ListDetailsScreen = ({ route }) => {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: false,
-        quality: 0.8, // Balance between quality and size
-        base64: true, // We need base64 for the OCR service
+        quality: 0.8,
+        base64: true,
       });
 
-      // User cancelled
-      if (result.canceled) {
-        return;
-      }
+      if (result.canceled) return;
 
-      // Get the captured image
       const image = result.assets[0];
       if (!image.base64) {
-        Alert.alert("Greška", "Nije moguće obraditi sliku. Pokušajte ponovo.");
+        setErrorMessage("Nije moguće obraditi sliku. Pokušajte ponovo.");
+        setShowErrorModal(true);
         return;
       }
 
       // Start verification
       setVerifyingItemId(item.id);
-      setSelectedItem(item);
 
       // Call OCR verification API
       const verifyResult = await verifyShoppingItem(
@@ -103,98 +116,223 @@ const ListDetailsScreen = ({ route }) => {
         token
       );
 
-      setVerificationResult(verifyResult);
-
       if (verifyResult.isMatch) {
-        // Success! Show price input modal
-        // Pre-fill with extracted price if available
+        // SUCCESS! Mark item as verified and allow price input
+        let suggestedPrice = "";
         if (verifyResult.extractedPrice) {
-          // Try to parse the extracted price (remove currency symbols, etc.)
           const priceMatch = verifyResult.extractedPrice.match(/[\d,\.]+/);
           if (priceMatch) {
-            setPriceInput(priceMatch[0].replace(",", "."));
+            suggestedPrice = priceMatch[0].replace(",", ".");
           }
         }
-        setShowPriceModal(true);
-      } else {
-        // No match - show error message
-        Alert.alert(
-          "Proizvod ne odgovara",
-          verifyResult.message ||
-            "Slika cjenovnika ne odgovara odabranom artiklu. Molimo pokušajte ponovo.",
-          [{ text: "U redu" }]
+
+        setItems((prev) =>
+          prev.map((i) =>
+            i.id === item.id
+              ? { ...i, isVerified: true, pendingPrice: suggestedPrice }
+              : i
+          )
         );
+      } else {
+        // NO MATCH - show error modal
+        setErrorMessage(
+          verifyResult.message ||
+            "Slika cjenovnika ne odgovara odabranom artiklu. Molimo pokušajte ponovo sa ispravnim proizvodom."
+        );
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error("Camera/verification error:", error);
-      Alert.alert(
-        "Greška",
+      setErrorMessage(
         error.message || "Došlo je do greške pri verifikaciji. Pokušajte ponovo."
       );
+      setShowErrorModal(true);
     } finally {
       setVerifyingItemId(null);
     }
   };
 
   /**
-   * Handle completing the item after successful verification
+   * Handle price input change for a verified item
    */
-  const handleCompleteItem = async () => {
-    if (!selectedItem || !priceInput) {
-      Alert.alert("Greška", "Molimo unesite cijenu.");
-      return;
-    }
+  const handlePriceChange = (itemId, value) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, pendingPrice: value } : i))
+    );
+  };
 
-    const price = parseFloat(priceInput.replace(",", "."));
+  /**
+   * Confirm price and complete the item
+   */
+  const handleConfirmPrice = async (item) => {
+    const price = parseFloat(item.pendingPrice.replace(",", "."));
     if (isNaN(price) || price <= 0) {
-      Alert.alert("Greška", "Molimo unesite ispravnu cijenu.");
+      setErrorMessage("Molimo unesite ispravnu cijenu.");
+      setShowErrorModal(true);
       return;
     }
 
-    setCompletingItem(true);
+    setCompletingItemId(item.id);
 
     try {
-      await completeShoppingItem(list.id, selectedItem.id, price, token);
+      await completeShoppingItem(list.id, item.id, price, token);
 
       // Update local state to mark item as completed
       setItems((prev) =>
-        prev.map((item) =>
-          item.id === selectedItem.id
-            ? { ...item, isCompleted: true, price }
-            : item
+        prev.map((i) =>
+          i.id === item.id
+            ? { ...i, isCompleted: true, price, pendingPrice: "" }
+            : i
         )
       );
-
-      Alert.alert(
-        "Uspješno!",
-        `Artikal "${selectedItem.name}" je označen kao kupljen.`,
-        [{ text: "U redu" }]
-      );
-
-      // Close modal and reset state
-      setShowPriceModal(false);
-      setPriceInput("");
-      setSelectedItem(null);
-      setVerificationResult(null);
     } catch (error) {
       console.error("Complete item error:", error);
-      Alert.alert(
-        "Greška",
+      setErrorMessage(
         error.message || "Nije moguće označiti artikal kao kupljen."
       );
+      setShowErrorModal(true);
     } finally {
-      setCompletingItem(false);
+      setCompletingItemId(null);
     }
   };
 
   /**
-   * Close price modal and reset state
+   * Complete the entire list
+   * Balance deduction and points are handled by the backend when the last item is completed
+   * We just need to delete the list after
    */
-  const handleClosePriceModal = () => {
-    setShowPriceModal(false);
-    setPriceInput("");
-    setSelectedItem(null);
-    setVerificationResult(null);
+  const handleCompleteList = async () => {
+    setCompletingList(true);
+
+    try {
+      // Delete the list
+      await deleteShoppingList(list.id, token);
+
+      // Navigate back to lists
+      Alert.alert(
+        "Kupovina završena! 🎉",
+        `Ukupno potrošeno: ${totalPrice.toFixed(2)} KM\nDobili ste 10 bodova!`,
+        [
+          {
+            text: "U redu",
+            onPress: () =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "ListsMain" }],
+              }),
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Complete list error:", error);
+      setErrorMessage(
+        error.message || "Nije moguće završiti kupovinu. Pokušajte ponovo."
+      );
+      setShowErrorModal(true);
+    } finally {
+      setCompletingList(false);
+    }
+  };
+
+  /**
+   * Close error modal
+   */
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+    setErrorMessage("");
+  };
+
+  /**
+   * Render a single item card
+   */
+  const renderItemCard = (item) => {
+    const isVerifying = verifyingItemId === item.id;
+    const isConfirming = completingItemId === item.id;
+
+    // COMPLETED ITEM - Green card with price
+    if (item.isCompleted) {
+      return (
+        <View key={item.id} style={styles.itemRowCompleted}>
+          <MaterialCommunityIcons
+            name="check-circle"
+            size={26}
+            color="#FFFFFF"
+          />
+          <Text style={styles.itemTextCompleted}>{item.name}</Text>
+          <Text style={styles.priceTextCompleted}>
+            {item.price?.toFixed(2)} KM
+          </Text>
+        </View>
+      );
+    }
+
+    // VERIFIED ITEM (awaiting price input) - Green card with price input
+    if (item.isVerified) {
+      return (
+        <View key={item.id} style={styles.itemRowVerified}>
+          <View style={styles.verifiedHeader}>
+            <MaterialCommunityIcons
+              name="check-circle"
+              size={22}
+              color="#FFFFFF"
+            />
+            <Text style={styles.itemTextVerified}>{item.name}</Text>
+          </View>
+
+          <View style={styles.priceInputRow}>
+            <TextInput
+              style={styles.inlinePriceInput}
+              value={item.pendingPrice}
+              onChangeText={(value) => handlePriceChange(item.id, value)}
+              keyboardType="decimal-pad"
+              placeholder="Cijena (KM)"
+              placeholderTextColor="#A5D6A7"
+            />
+            <TouchableOpacity
+              style={[
+                styles.confirmPriceButton,
+                isConfirming && styles.buttonDisabled,
+              ]}
+              onPress={() => handleConfirmPrice(item)}
+              disabled={isConfirming}
+            >
+              {isConfirming ? (
+                <ActivityIndicator size="small" color="#4CAF50" />
+              ) : (
+                <MaterialCommunityIcons name="check" size={24} color="#4CAF50" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
+    // NORMAL ITEM - White card with camera button
+    return (
+      <View key={item.id} style={styles.itemRow}>
+        <MaterialCommunityIcons
+          name="checkbox-blank-circle-outline"
+          size={26}
+          color="#12C7E5"
+        />
+        <Text style={styles.itemText}>{item.name}</Text>
+
+        {/* Camera button - only for active lists */}
+        {isActiveList && (
+          <TouchableOpacity
+            style={styles.cameraButton}
+            onPress={() => handleCameraPress(item)}
+            disabled={verifyingItemId !== null}
+          >
+            {isVerifying ? (
+              <ActivityIndicator size="small" color="#12C7E5" />
+            ) : (
+              <Text style={styles.cameraEmoji}>📷</Text>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
+    );
   };
 
   return (
@@ -225,115 +363,74 @@ const ListDetailsScreen = ({ route }) => {
           {items.length === 0 ? (
             <Text style={styles.emptyText}>Ova lista nema stavki</Text>
           ) : (
-            items.map((item) => (
-              <View key={item.id} style={styles.itemRow}>
-                {/* Check icon - green if completed */}
-                <MaterialCommunityIcons
-                  name={item.isCompleted ? "check-circle" : "check-circle-outline"}
-                  size={26}
-                  color={item.isCompleted ? "#4CAF50" : "#12C7E5"}
-                />
-
-                {/* Item name */}
-                <Text
-                  style={[
-                    styles.itemText,
-                    item.isCompleted && styles.itemTextCompleted,
-                  ]}
-                >
-                  {item.name}
-                </Text>
-
-                {/* Price if completed */}
-                {item.isCompleted && item.price && (
-                  <Text style={styles.priceText}>
-                    {item.price.toFixed(2)} KM
-                  </Text>
-                )}
-
-                {/* Camera button - only for active lists and uncompleted items */}
-                {isActiveList && !item.isCompleted && (
-                  <TouchableOpacity
-                    style={styles.cameraButton}
-                    onPress={() => handleCameraPress(item)}
-                    disabled={verifyingItemId !== null}
-                  >
-                    {verifyingItemId === item.id ? (
-                      <ActivityIndicator size="small" color="#12C7E5" />
-                    ) : (
-                      <Text style={styles.cameraEmoji}>📷</Text>
-                    )}
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))
+            items.map((item) => renderItemCard(item))
           )}
         </ScrollView>
       </View>
 
-      {/* PRICE INPUT MODAL */}
+      {/* TOTAL & COMPLETE BUTTON - Only for active lists */}
+      {isActiveList && items.length > 0 && (
+        <View style={styles.bottomSection}>
+          {/* TOTAL */}
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Ukupno:</Text>
+            <Text style={styles.totalValue}>{totalPrice.toFixed(2)} KM</Text>
+          </View>
+
+          {/* COMPLETE LIST BUTTON */}
+          {allItemsCompleted && (
+            <TouchableOpacity
+              style={[
+                styles.completeListButton,
+                completingList && styles.buttonDisabled,
+              ]}
+              onPress={handleCompleteList}
+              disabled={completingList}
+            >
+              {completingList ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <MaterialCommunityIcons
+                    name="cart-check"
+                    size={24}
+                    color="#FFFFFF"
+                  />
+                  <Text style={styles.completeListButtonText}>
+                    Završi kupovinu
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* ERROR MODAL */}
       <Modal
-        visible={showPriceModal}
+        visible={showErrorModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={handleClosePriceModal}
+        onRequestClose={handleCloseErrorModal}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            {/* Success header */}
+            {/* Error header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.successEmoji}>✅</Text>
-              <Text style={styles.modalTitle}>Proizvod potvrđen!</Text>
+              <Text style={styles.errorEmoji}>❌</Text>
+              <Text style={styles.modalTitle}>Neuspješna verifikacija</Text>
             </View>
 
-            {/* Verification result info */}
-            {verificationResult && (
-              <View style={styles.resultInfo}>
-                <Text style={styles.resultLabel}>Prepoznat tekst:</Text>
-                <Text style={styles.resultText} numberOfLines={2}>
-                  {verificationResult.ocrText || "N/A"}
-                </Text>
-                <Text style={styles.confidenceText}>
-                  Pouzdanost: {(verificationResult.confidence * 100).toFixed(0)}%
-                </Text>
-              </View>
-            )}
+            {/* Error message */}
+            <Text style={styles.errorMessageText}>{errorMessage}</Text>
 
-            {/* Price input */}
-            <Text style={styles.priceLabel}>Unesite cijenu (KM):</Text>
-            <TextInput
-              style={styles.priceInputField}
-              value={priceInput}
-              onChangeText={setPriceInput}
-              keyboardType="decimal-pad"
-              placeholder="0.00"
-              placeholderTextColor="#999"
-            />
-
-            {/* Buttons */}
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleClosePriceModal}
-              >
-                <Text style={styles.cancelButtonText}>Odustani</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.confirmButton,
-                  completingItem && styles.buttonDisabled,
-                ]}
-                onPress={handleCompleteItem}
-                disabled={completingItem}
-              >
-                {completingItem ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.confirmButtonText}>Potvrdi</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+            {/* Close button */}
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={handleCloseErrorModal}
+            >
+              <Text style={styles.closeButtonText}>Zatvori</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -359,7 +456,6 @@ const styles = StyleSheet.create({
     padding: 18,
     elevation: 4,
     flex: 1,
-    marginBottom: 20,
   },
 
   listTitle: {
@@ -373,15 +469,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFDF8",
     borderRadius: 18,
     padding: 16,
+    paddingBottom: 8,
   },
 
+  /* NORMAL ITEM */
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     marginBottom: 10,
     borderWidth: 2,
     borderColor: "#12C7E5",
@@ -389,22 +487,10 @@ const styles = StyleSheet.create({
 
   itemText: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "600",
     marginLeft: 10,
     color: "#4A4A4A",
-  },
-
-  itemTextCompleted: {
-    textDecorationLine: "line-through",
-    color: "#8A8A8A",
-  },
-
-  priceText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#4CAF50",
-    marginRight: 8,
   },
 
   cameraButton: {
@@ -416,6 +502,76 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
 
+  /* VERIFIED ITEM (green, awaiting price) */
+  itemRowVerified: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+  },
+
+  verifiedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  itemTextVerified: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: "700",
+    marginLeft: 10,
+    color: "#FFFFFF",
+  },
+
+  priceInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  inlinePriceInput: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginRight: 10,
+  },
+
+  confirmPriceButton: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 10,
+  },
+
+  /* COMPLETED ITEM (green, with price) */
+  itemRowCompleted: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#4CAF50",
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+
+  itemTextCompleted: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: "600",
+    marginLeft: 10,
+    color: "#FFFFFF",
+  },
+
+  priceTextCompleted: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+
   emptyText: {
     fontSize: 14,
     color: "#8A8A8A",
@@ -423,7 +579,58 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
 
-  /* MODAL STYLES */
+  /* BOTTOM SECTION */
+  bottomSection: {
+    padding: 16,
+    paddingBottom: Platform.OS === "ios" ? 34 : 16,
+    backgroundColor: "#FFFFFF",
+  },
+
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    marginBottom: 12,
+  },
+
+  totalLabel: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#4A4A4A",
+  },
+
+  totalValue: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#4CAF50",
+  },
+
+  completeListButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#4CAF50",
+    borderRadius: 14,
+    paddingVertical: 16,
+    elevation: 3,
+  },
+
+  completeListButtonText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginLeft: 10,
+  },
+
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+
+  /* ERROR MODAL */
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -446,99 +653,37 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  successEmoji: {
+  errorEmoji: {
     fontSize: 48,
     marginBottom: 8,
   },
 
   modalTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "700",
     color: "#4A4A4A",
-  },
-
-  resultInfo: {
-    backgroundColor: "#F5F5F5",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-
-  resultLabel: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 4,
-  },
-
-  resultText: {
-    fontSize: 14,
-    color: "#333",
-    fontStyle: "italic",
-  },
-
-  confidenceText: {
-    fontSize: 12,
-    color: "#4CAF50",
-    marginTop: 8,
-    fontWeight: "600",
-  },
-
-  priceLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#4A4A4A",
-    marginBottom: 8,
-  },
-
-  priceInputField: {
-    borderWidth: 2,
-    borderColor: "#12C7E5",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 18,
-    fontWeight: "600",
     textAlign: "center",
+  },
+
+  errorMessageText: {
+    fontSize: 15,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 22,
     marginBottom: 20,
   },
 
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
+  closeButton: {
     backgroundColor: "#E0E0E0",
-    marginRight: 8,
-    alignItems: "center",
-  },
-
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#666",
-  },
-
-  confirmButton: {
-    flex: 1,
-    paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: "#4CAF50",
-    marginLeft: 8,
+    paddingVertical: 14,
     alignItems: "center",
   },
 
-  confirmButtonText: {
+  closeButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
-  },
-
-  buttonDisabled: {
-    opacity: 0.6,
+    color: "#4A4A4A",
   },
 });
 
