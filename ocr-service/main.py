@@ -108,7 +108,7 @@ async def health_check():
     }
 
 
-@app.post("/verify", response_model=VerifyItemResponse, response_model_by_alias=True)
+@app.post("/verify", response_model=VerifyItemResponse)
 async def verify_item(request: VerifyItemRequest):
     """
     Verify if a price tag image matches a shopping item.
