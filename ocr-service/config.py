@@ -28,7 +28,8 @@ class Settings(BaseSettings):
     ocr_language: str = "hrv"
     
     # Verification thresholds
-    confidence_threshold: float = 0.7
+    # Lower threshold to be more accepting of OCR matches
+    confidence_threshold: float = 0.6
     
     # Debug mode
     debug: bool = False
