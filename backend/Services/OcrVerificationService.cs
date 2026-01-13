@@ -25,10 +25,10 @@ public class OcrVerificationService : IOcrVerificationService
     private readonly OcrServiceSettings _settings;
     private readonly ILogger<OcrVerificationService> _logger;
 
-    // JSON options for camelCase property names (matching Python FastAPI)
+    // JSON options - use snake_case for sending to Python, case-insensitive for reading
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         PropertyNameCaseInsensitive = true
     };
 
@@ -60,10 +60,10 @@ public class OcrVerificationService : IOcrVerificationService
 
             // Prepare request payload
             // Image is sent to OCR service and processed in-memory there
-            var requestPayload = new
+            var requestPayload = new OcrVerifyRequest
             {
-                item_name = itemName,
-                image_base64 = imageBase64
+                ItemName = itemName,
+                ImageBase64 = imageBase64
             };
 
             // Send request to Python OCR service
@@ -145,6 +145,15 @@ public class OcrVerificationService : IOcrVerificationService
                 "Neočekivana greška pri verifikaciji.",
                 StatusCodes.Status500InternalServerError);
         }
+    }
+
+    /// <summary>
+    /// Internal DTO for request to Python OCR service.
+    /// </summary>
+    private class OcrVerifyRequest
+    {
+        public string ItemName { get; set; } = string.Empty;
+        public string ImageBase64 { get; set; } = string.Empty;
     }
 
     /// <summary>
