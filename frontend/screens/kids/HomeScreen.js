@@ -116,7 +116,7 @@ const HomeScreen = () => {
             <MaterialCommunityIcons name="account" size={28} color="#fff" />
           }
           rightIcon={
-            <MaterialCommunityIcons name="bitcoin" size={60} color="#FFD54F" />
+            <MaterialCommunityIcons name="cash-multiple" size={60} color="#FFD54F" />
           }
         />
 

@@ -25,7 +25,6 @@ const LoginScreen = ({ navigation, route }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   // ✅ EMAIL REGEX
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -115,27 +114,15 @@ const LoginScreen = ({ navigation, route }) => {
               keyboardType="email-address"
             />
 
-            <View style={styles.passwordWrapper}>
-              <CustomInput
-                key={showPassword ? "pw-show" : "pw-hide"}
-                placeholder="Šifra"
-                value={password}
-                onChangeText={setPassword}
-                iconName="lock-outline"
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword((prev) => !prev)}
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
-                  size={22}
-                  color="#7D7D7D"
-                />
-              </TouchableOpacity>
-            </View>
+            <CustomInput
+              placeholder="Šifra"
+              value={password}
+              onChangeText={setPassword}
+              iconName="lock-outline"
+              secureTextEntry
+              isPassword
+            />
+
 
             <TouchableOpacity
               onPress={handleForgotPassword}
@@ -252,19 +239,6 @@ const styles = StyleSheet.create({
     fontFamily: "sf-rounded-regular",
   },
 
-  passwordWrapper: {
-    width: "100%",
-    alignItems: "center",
-    position: "relative",
-    marginTop: 10,
-  },
-
-  eyeButton: {
-    position: "absolute",
-    right: 40,
-    top: Platform.OS === "android" ? 10 : 12,
-    padding: 6,
-  },
 });
 
 export default LoginScreen;

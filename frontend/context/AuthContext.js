@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setUnauthorizedHandler } from "../api/endpoints";
 
 const STORAGE_TOKEN_KEY = "auth_token";
 const STORAGE_ROLE_KEY = "auth_role";
@@ -38,6 +39,10 @@ export function AuthProvider({ children }) {
     };
 
     restoreSession();
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => logout);
   }, []);
 
   const login = async (authPayload) => {

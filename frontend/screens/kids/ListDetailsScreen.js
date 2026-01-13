@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -12,7 +12,7 @@ import {
   Alert,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
@@ -21,6 +21,8 @@ import {
   verifyShoppingItem,
   completeShoppingItem,
   deleteShoppingList,
+  getChildActiveLists,
+  getChildPendingLists,
 } from "../../api/endpoints";
 
 const ListDetailsScreen = ({ route }) => {
@@ -49,10 +51,47 @@ const ListDetailsScreen = ({ route }) => {
       name: item.text || item.Text || item.name || item.Name || "",
       isCompleted: item.isCompleted || item.IsCompleted || false,
       price: item.price || item.Price || null,
-      // New states for inline price input
-      isVerified: item.isCompleted || item.IsCompleted || false, // Item passed OCR
-      pendingPrice: "", // Price being entered
+      isVerified: item.isCompleted || item.IsCompleted || false,
+      pendingPrice: "",
     }))
+  );
+
+  const refreshFromApi = useCallback(async () => {
+    if (!token) return;
+    try {
+      const [activeRes, pendingRes] = await Promise.all([
+        getChildActiveLists(token),
+        getChildPendingLists(token),
+      ]);
+      const combined = [
+        ...(Array.isArray(activeRes) ? activeRes : []),
+        ...(Array.isArray(pendingRes) ? pendingRes : []),
+      ];
+      const latest = combined.find(
+        (l) => (l.id || l.Id || "").toString() === (list.id || list.Id || "").toString()
+      );
+      if (latest && latest.items) {
+        setItems(
+          latest.items.map((item) => ({
+            id: item.id || item.Id,
+            name: item.text || item.Text || item.name || item.Name || "",
+            isCompleted: item.isCompleted || item.IsCompleted || false,
+            price: item.price || item.Price || null,
+            isVerified: item.isCompleted || item.IsCompleted || false,
+            pendingPrice: "",
+          }))
+        );
+      }
+    } catch (err) {
+      // soft-fail; keep local state
+      console.warn("Failed to refresh list details", err);
+    }
+  }, [token, list.id, list.Id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshFromApi();
+    }, [refreshFromApi])
   );
 
   // Calculate total price of completed items
@@ -225,9 +264,15 @@ const ListDetailsScreen = ({ route }) => {
       );
     } catch (error) {
       console.error("Complete list error:", error);
-      setErrorMessage(
-        error.message || "Nije moguće završiti kupovinu. Pokušajte ponovo."
-      );
+      
+      // Check if it's an insufficient balance error
+      const errorMsg = error.message || "";
+      if (errorMsg.includes("Insufficient balance") || errorMsg.includes("nedovoljno") || errorMsg.includes("balance")) {
+        setErrorMessage("You do not have enough money.");
+      } else {
+        setErrorMessage(errorMsg || "Nije moguće završiti kupovinu. Pokušajte ponovo.");
+      }
+      
       setShowErrorModal(true);
     } finally {
       setCompletingList(false);
@@ -337,74 +382,84 @@ const ListDetailsScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.headerWrapper}>
-        <HeaderWithBack
-          title="Detalji liste"
-          onBack={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "ListsMain" }],
-            })
-          }
-        />
-      </View>
-
-      {/* CARD */}
-      <View style={styles.card}>
-        {/* TITLE */}
-        <Text style={styles.listTitle}>{list.title}</Text>
-
-        {/* ITEMS */}
-        <ScrollView
-          contentContainerStyle={styles.itemsWrapper}
-          showsVerticalScrollIndicator={false}
-        >
-          {items.length === 0 ? (
-            <Text style={styles.emptyText}>Ova lista nema stavki</Text>
-          ) : (
-            items.map((item) => renderItemCard(item))
-          )}
-        </ScrollView>
-      </View>
-
-      {/* TOTAL & COMPLETE BUTTON - Only for active lists */}
-      {isActiveList && items.length > 0 && (
-        <View style={styles.bottomSection}>
-          {/* TOTAL */}
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Ukupno:</Text>
-            <Text style={styles.totalValue}>{totalPrice.toFixed(2)} KM</Text>
-          </View>
-
-          {/* COMPLETE LIST BUTTON */}
-          {allItemsCompleted && (
-            <TouchableOpacity
-              style={[
-                styles.completeListButton,
-                completingList && styles.buttonDisabled,
-              ]}
-              onPress={handleCompleteList}
-              disabled={completingList}
-            >
-              {completingList ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <>
-                  <MaterialCommunityIcons
-                    name="cart-check"
-                    size={24}
-                    color="#FFFFFF"
-                  />
-                  <Text style={styles.completeListButtonText}>
-                    Završi kupovinu
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* HEADER */}
+        <View style={styles.headerWrapper}>
+          <HeaderWithBack
+            title="Detalji liste"
+            onBack={() =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "ListsMain" }],
+              })
+            }
+          />
         </View>
-      )}
+
+        {/* CARD */}
+        <View style={styles.card}>
+          {/* TITLE */}
+          <Text style={styles.listTitle}>{list.title}</Text>
+
+          {/* ITEMS - Max 4 visible, scrollable if more */}
+          <View style={styles.itemsContainer}>
+            <ScrollView
+              style={styles.itemsScrollView}
+              contentContainerStyle={styles.itemsWrapper}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
+              {items.length === 0 ? (
+                <Text style={styles.emptyText}>Ova lista nema stavki</Text>
+              ) : (
+                items.map((item) => renderItemCard(item))
+              )}
+            </ScrollView>
+          </View>
+        </View>
+
+        {/* TOTAL & COMPLETE BUTTON - Only for active lists */}
+        {isActiveList && items.length > 0 && (
+          <View style={styles.bottomSection}>
+            {/* TOTAL */}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Ukupno:</Text>
+              <Text style={styles.totalValue}>{totalPrice.toFixed(2)} KM</Text>
+            </View>
+
+            {/* COMPLETE LIST BUTTON */}
+            {allItemsCompleted && (
+              <TouchableOpacity
+                style={[
+                  styles.completeListButton,
+                  completingList && styles.buttonDisabled,
+                ]}
+                onPress={handleCompleteList}
+                disabled={completingList}
+              >
+                {completingList ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <MaterialCommunityIcons
+                      name="cart-check"
+                      size={24}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.completeListButtonText}>
+                      Završi kupovinu
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </ScrollView>
 
       {/* ERROR MODAL */}
       <Modal
@@ -418,18 +473,24 @@ const ListDetailsScreen = ({ route }) => {
             {/* Error header */}
             <View style={styles.modalHeader}>
               <Text style={styles.errorEmoji}>❌</Text>
-              <Text style={styles.modalTitle}>Neuspješna verifikacija</Text>
+              <Text style={styles.modalTitle}>
+                {errorMessage === "You do not have enough money." 
+                  ? "Nedovoljno novca" 
+                  : "Neuspješna verifikacija"}
+              </Text>
             </View>
 
             {/* Error message */}
             <Text style={styles.errorMessageText}>{errorMessage}</Text>
 
-            {/* Close button */}
+            {/* Close button - OK for insufficient balance, Zatvori for others */}
             <TouchableOpacity
               style={styles.closeButton}
               onPress={handleCloseErrorModal}
             >
-              <Text style={styles.closeButtonText}>Zatvori</Text>
+              <Text style={styles.closeButtonText}>
+                {errorMessage === "You do not have enough money." ? "OK" : "Zatvori"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -444,6 +505,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
+  scrollContainer: {
+    flex: 1,
+  },
+
+  scrollContent: {
+    paddingBottom: Platform.OS === "ios" ? 90 : 70, // Space for tab navigator
+  },
+
   headerWrapper: {
     marginTop: Platform.OS === "android" ? 20 : 80,
   },
@@ -455,7 +524,6 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     padding: 18,
     elevation: 4,
-    flex: 1,
   },
 
   listTitle: {
@@ -463,6 +531,14 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#4A4A4A",
     marginBottom: 14,
+  },
+
+  itemsContainer: {
+    // No flex here - let it size naturally
+  },
+
+  itemsScrollView: {
+    maxHeight: 320, // ~4 items visible (each item ~70px + spacing)
   },
 
   itemsWrapper: {
@@ -581,9 +657,9 @@ const styles = StyleSheet.create({
 
   /* BOTTOM SECTION */
   bottomSection: {
-    padding: 16,
-    paddingBottom: Platform.OS === "ios" ? 34 : 16,
-    backgroundColor: "#FFFFFF",
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 16,
   },
 
   totalRow: {

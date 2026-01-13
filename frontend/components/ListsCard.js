@@ -47,12 +47,22 @@ const ListsCard = ({
               {lists.map((list) => (
                 <TouchableOpacity
                   key={list.id}
-                  style={styles.listItem}
+                  style={[
+                    styles.listItem,
+                    (list.type === 1 || list.type === "emergency") &&
+                      styles.listItemEmergency,
+                  ]}
                   activeOpacity={0.85}
                   onPress={() => onCardPress && onCardPress(list)}
                 >
                   {/* LEFT ICON */}
-                  <View style={styles.iconBox}>
+                  <View
+                    style={[
+                      styles.iconBox,
+                      (list.type === 1 || list.type === "emergency") &&
+                        styles.iconBoxEmergency,
+                    ]}
+                  >
                     <MaterialCommunityIcons
                       name="cart-outline"
                       size={26}
@@ -167,6 +177,10 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
 
+  iconBoxEmergency: {
+    backgroundColor: "#E53935",
+  },
+
   textWrapper: {
     flex: 1,
   },
@@ -181,6 +195,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#6B7280",
     marginTop: 2,
+  },
+
+  listItemEmergency: {
+    borderColor: "transparent",
+    borderWidth: 0,
   },
 });
 
