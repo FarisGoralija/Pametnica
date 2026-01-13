@@ -41,8 +41,12 @@ public class OcrVerificationService : IOcrVerificationService
         _settings = settings.Value;
         _logger = logger;
 
-        // Configure HttpClient timeout
-        _httpClient.Timeout = TimeSpan.FromSeconds(_settings.TimeoutSeconds);
+        // Configure HttpClient timeout - increased for OCR processing
+        // OCR + AI verification can take 20-30 seconds on slower servers
+        var timeout = Math.Max(_settings.TimeoutSeconds, 45); // Minimum 45 seconds
+        _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
+        
+        _logger.LogInformation($"OCR service timeout set to {timeout} seconds");
     }
 
     public async Task<ServiceResult<VerifyItemResponse>> VerifyItemAsync(string itemName, string imageBase64)
