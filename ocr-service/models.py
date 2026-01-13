@@ -23,12 +23,14 @@ class VerifyItemRequest(BaseModel):
         min_length=1, 
         max_length=200,
         alias="itemName",
+        validation_alias="item_name",
         description="Shopping item name from the list (e.g., 'mlijeko', 'kruh')"
     )
     image_base64: str = Field(
         ..., 
         min_length=100,  # Reasonable minimum for a base64 image
         alias="imageBase64",
+        validation_alias="image_base64",
         description="Base64-encoded image of the price tag"
     )
 
@@ -36,21 +38,10 @@ class VerifyItemRequest(BaseModel):
 class VerifyItemResponse(BaseModel):
     """
     Response model for item verification.
-    
-    Attributes:
-        is_match: Whether the OCR text semantically matches the item name
-        confidence: Confidence score between 0.0 and 1.0
-        ocr_text: Raw text extracted from the image (for debugging/logging)
-        extracted_price: Price extracted from OCR text, if detected
-        message: Human-readable message explaining the result (in Bosnian)
+    Returns snake_case for consistency with .NET backend.
     """
-    # Use camelCase for JSON response (matches frontend expectations)
-    model_config = ConfigDict(populate_by_name=True)
-    
     is_match: bool = Field(
         ..., 
-        alias="isMatch",
-        serialization_alias="isMatch",
         description="True if OCR text semantically matches the item name"
     )
     confidence: float = Field(
@@ -61,14 +52,10 @@ class VerifyItemResponse(BaseModel):
     )
     ocr_text: str = Field(
         ..., 
-        alias="ocrText",
-        serialization_alias="ocrText",
         description="Raw text extracted from the image via OCR"
     )
     extracted_price: Optional[str] = Field(
         None, 
-        alias="extractedPrice",
-        serialization_alias="extractedPrice",
         description="Price extracted from the OCR text, if detected"
     )
     message: str = Field(
