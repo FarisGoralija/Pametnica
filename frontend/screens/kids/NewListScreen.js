@@ -16,7 +16,6 @@ import RenameListModal from "../../components/RenameListModal";
 import {
   addShoppingListItem,
   createShoppingList,
-  deleteShoppingListItem,
   submitShoppingList,
   updateShoppingListTitle,
 } from "../../api/endpoints";
@@ -65,19 +64,6 @@ const NewListScreen = () => {
     if (created?.title) setListTitle(created.title);
     return newId;
   };
-
-  // For emergency lists, create immediately so they are active
-  useEffect(() => {
-    if (listType === 2 && !listId && token) {
-      setLoadingAction(true);
-      ensureBackendList()
-        .catch((err) =>
-          setErrorMessage(err?.message || "Neuspješno kreiranje liste.")
-        )
-        .finally(() => setLoadingAction(false));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listType, listId, token]);
 
   const addItem = (text) => {
     const cleaned = text.trim();
@@ -139,11 +125,6 @@ const NewListScreen = () => {
   };
 
   const handleSubmit = () => {
-    // Normal lists only; emergency handled elsewhere
-    if (listType === 2) {
-      navigation.goBack();
-      return;
-    }
     if (!token) {
       setErrorMessage("Nedostaje autentifikacija. Pokušajte ponovo.");
       return;
@@ -200,47 +181,6 @@ const NewListScreen = () => {
       {/* HEADER */}
       <View style={styles.headerWrapper}>
         <HeaderWithBack title="Nova Lista" subtitle="" />
-      </View>
-
-      {/* ACTIONS ROW */}
-      <View style={styles.actionsRow}>
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            listType !== 2 &&
-              (items.length === 0 || loadingAction) &&
-              styles.sendButtonDisabled,
-          ]}
-          activeOpacity={0.8}
-          onPress={listType === 2 ? () => navigation.goBack() : handleSubmit}
-          disabled={listType !== 2 && (items.length === 0 || loadingAction)}
-        >
-          <MaterialCommunityIcons
-            name={listType === 2 ? "check" : "send"}
-            size={16}
-            color="#FFFFFF"
-            style={{ marginRight: 6 }}
-          />
-          <Text style={styles.sendText}>
-            {listType === 2 ? "Dodaj listu" : "Pošalji roditelju"}
-          </Text>
-        </TouchableOpacity>
-
-        {listType === 2 && (
-          <TouchableOpacity
-            style={[styles.sendButton, styles.deleteButton]}
-            activeOpacity={0.8}
-            onPress={() => navigation.goBack()}
-          >
-            <MaterialCommunityIcons
-              name="close"
-              size={16}
-              color="#FFFFFF"
-              style={{ marginRight: 6 }}
-            />
-            <Text style={styles.sendText}>Obriši listu</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* LIST CARD */}
@@ -347,6 +287,78 @@ const NewListScreen = () => {
         </View>
       </View>
 
+      {/* ACTIONS BELOW LIST */}
+      <View style={styles.actionsRow}>
+        <TouchableOpacity
+          style={[
+            styles.sendButton,
+            listType !== 2 &&
+              (items.length === 0 || loadingAction) &&
+              styles.sendButtonDisabled,
+          ]}
+          activeOpacity={0.8}
+          onPress={async () => {
+            if (!token) {
+              setErrorMessage("Nedostaje autentifikacija. Pokušajte ponovo.");
+              return;
+            }
+            if (loadingAction) return;
+
+            if (listType === 2) {
+              setLoadingAction(true);
+              setErrorMessage("");
+              try {
+                const newId = await ensureBackendList();
+                for (const item of items) {
+                  await addShoppingListItem(newId, item.text, token);
+                }
+                navigation.goBack();
+              } catch (err) {
+                setErrorMessage(
+                  err?.message ||
+                    "Dodavanje liste nije uspjelo. Pokušajte ponovo."
+                );
+              } finally {
+                setLoadingAction(false);
+              }
+            } else {
+              handleSubmit();
+            }
+          }}
+          disabled={listType !== 2 && (items.length === 0 || loadingAction)}
+        >
+          <MaterialCommunityIcons
+            name={listType === 2 ? "check" : "send"}
+            size={16}
+            color="#FFFFFF"
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.sendText}>
+            {listType === 2 ? "Dodaj listu" : "Pošalji roditelju"}
+          </Text>
+        </TouchableOpacity>
+
+        {listType === 2 && (
+          <TouchableOpacity
+            style={[styles.sendButton, styles.deleteButton]}
+            activeOpacity={0.8}
+            onPress={() => {
+              setItems([]);
+              setListId(null);
+              navigation.goBack();
+            }}
+          >
+            <MaterialCommunityIcons
+              name="close"
+              size={16}
+              color="#FFFFFF"
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.sendText}>Obriši listu</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {errorMessage ? (
         <Text style={styles.errorText}>{errorMessage}</Text>
       ) : null}
@@ -401,12 +413,6 @@ const styles = StyleSheet.create({
 
   headerWrapper: {
     marginTop: Platform.OS === "android" ? 20 : 80,
-  },
-
-  sendWrapper: {
-    alignItems: "flex-end",
-    paddingHorizontal: 20,
-    marginBottom: 10,
   },
 
   sendButton: {
@@ -527,10 +533,11 @@ const styles = StyleSheet.create({
 
   actionsRow: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
-    marginBottom: 10,
+    marginTop: 20,
+    marginBottom: 20,
     gap: 10,
   },
 

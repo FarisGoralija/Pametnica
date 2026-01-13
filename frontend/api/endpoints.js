@@ -10,7 +10,15 @@ export const endpoints = {
   parentShoppingLists: `${BASE_URL}/children`,
 };
 
+let unauthorizedHandler = null;
+export function setUnauthorizedHandler(handler) {
+  unauthorizedHandler = handler;
+}
+
 async function parseJsonSafely(response) {
+  if (response.status === 401 && unauthorizedHandler) {
+    unauthorizedHandler();
+  }
   const text = await response.text();
   if (!text) return null;
   try {
