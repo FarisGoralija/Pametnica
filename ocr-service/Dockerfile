@@ -7,10 +7,11 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Install system dependencies for Tesseract OCR
-# Croatian/Bosnian language pack for product names
+# Croatian/Bosnian + script detection for Latin characters
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-hrv \
+    tesseract-ocr-osd \
     libtesseract-dev \
     libleptonica-dev \
     curl \
