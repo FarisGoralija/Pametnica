@@ -38,6 +38,19 @@ const NewListScreen = () => {
   const [loadingAction, setLoadingAction] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const dedupeItems = (list) => {
+    const seen = new Set();
+    const result = [];
+    list.forEach((item) => {
+      const key = `${item.id || ""}-${(item.text || "").toLowerCase()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(item);
+      }
+    });
+    return result;
+  };
+
   useEffect(() => {
     const nextListId = route?.params?.listId || null;
     const nextTitle = route?.params?.listTitle || "Lista 1";
@@ -84,22 +97,25 @@ const NewListScreen = () => {
         .then((id) => addShoppingListItem(id, cleaned, token))
         .then((result) => {
           if (result && Array.isArray(result.items)) {
-            setItems(
-              result.items.map((i) => ({
-                id: i.id?.toString(),
-                text: i.name,
-              }))
-            );
+            const mapped = result.items.map((i) => ({
+              id: i.id?.toString(),
+              text: i.name,
+            }));
+            setItems(dedupeItems(mapped));
           } else if (result && result.id) {
-            setItems((prev) => [
-              ...prev,
-              { id: result.id?.toString(), text: result.name || cleaned },
-            ]);
+            setItems((prev) =>
+              dedupeItems([
+                ...prev,
+                { id: result.id?.toString(), text: result.name || cleaned },
+              ])
+            );
           } else {
-            setItems((prev) => [
-              ...prev,
-              { id: Date.now().toString(), text: cleaned },
-            ]);
+            setItems((prev) =>
+              dedupeItems([
+                ...prev,
+                { id: Date.now().toString(), text: cleaned },
+              ])
+            );
           }
         })
         .catch((err) => {
@@ -113,7 +129,9 @@ const NewListScreen = () => {
     }
 
     // Normal list: local items until submit
-    setItems((prev) => [...prev, { id: Date.now().toString(), text: cleaned }]);
+    setItems((prev) =>
+      dedupeItems([...prev, { id: Date.now().toString(), text: cleaned }])
+    );
   };
 
   const removeItem = (id) => {
@@ -305,13 +323,11 @@ const NewListScreen = () => {
             if (loadingAction) return;
 
             if (listType === 2) {
+              // Emergency lists already push items as they are added.
               setLoadingAction(true);
               setErrorMessage("");
               try {
-                const newId = await ensureBackendList();
-                for (const item of items) {
-                  await addShoppingListItem(newId, item.text, token);
-                }
+                await ensureBackendList(); // make sure list exists at least once
                 navigation.goBack();
               } catch (err) {
                 setErrorMessage(
