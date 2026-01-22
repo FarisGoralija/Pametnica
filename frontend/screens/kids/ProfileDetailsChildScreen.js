@@ -100,11 +100,11 @@ const ProfileDetailsChildScreen = () => {
             <MaterialCommunityIcons
               name="account-outline"
               size={24}
-              color="#7D7D7D"
+              color="#FAFAFA"
             />
           }
           rightIcon={
-            <MaterialCommunityIcons name="pencil" size={20} color="#7D7D7D" />
+            <MaterialCommunityIcons name="pencil" size={20} color="#FAFAFA" />
           }
           onPress={() => openModal("firstName")}
         />
@@ -116,11 +116,11 @@ const ProfileDetailsChildScreen = () => {
             <MaterialCommunityIcons
               name="account-outline"
               size={24}
-              color="#7D7D7D"
+              color="#FAFAFA"
             />
           }
           rightIcon={
-            <MaterialCommunityIcons name="pencil" size={20} color="#7D7D7D" />
+            <MaterialCommunityIcons name="pencil" size={20} color="#FAFAFA" />
           }
           onPress={() => openModal("lastName")}
         />
@@ -132,11 +132,11 @@ const ProfileDetailsChildScreen = () => {
             <MaterialCommunityIcons
               name="email-outline"
               size={24}
-              color="#7D7D7D"
+              color="#FAFAFA"
             />
           }
           rightIcon={
-            <MaterialCommunityIcons name="pencil" size={20} color="#7D7D7D" />
+            <MaterialCommunityIcons name="pencil" size={20} color="#FAFAFA" />
           }
           onPress={() => openModal("email")}
         />
@@ -195,13 +195,13 @@ const styles = StyleSheet.create({
   content: { marginTop: 30, paddingHorizontal: 20 },
   errorText: {
     marginTop: 12,
-    color: "#56A0E3",
+    color: "#E53935",
     fontSize: 14,
     textAlign: "center",
   },
   loadingText: {
     marginTop: 12,
-    color: "#7D7D7D",
+    color: "#F2B84B",
     fontSize: 14,
     textAlign: "center",
   },

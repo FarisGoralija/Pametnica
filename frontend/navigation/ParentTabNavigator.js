@@ -17,7 +17,7 @@ export default function ParentTabNavigator() {
           marginHorizontal: "5%",
           height: 78, // ⬅️ slightly taller
           paddingBottom: 8, // ⬅️ FIXES iOS CLIPPING
-          backgroundColor: "#92DAE8",
+          backgroundColor: "#4B9EF2",
           borderRadius: 24,
           borderTopWidth: 0,
           elevation: 8,
@@ -39,8 +39,8 @@ export default function ParentTabNavigator() {
           marginTop: 2, // ⬅️ iOS-friendly
         },
 
-        tabBarActiveTintColor: "#228390",
-        tabBarInactiveTintColor: "#7D7D7D",
+        tabBarActiveTintColor: "#F2B84B",
+        tabBarInactiveTintColor: "#FAFAFA",
       }}
     >
       <Tab.Screen

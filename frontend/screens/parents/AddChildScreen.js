@@ -117,7 +117,7 @@ const AddChildScreen = () => {
             marginHorizontal: "5%",
             height: 78,
             paddingBottom: 8,
-            backgroundColor: "#92DAE8",
+            backgroundColor: "#4B9EF2",
             borderRadius: 24,
             borderTopWidth: 0,
             elevation: 8,

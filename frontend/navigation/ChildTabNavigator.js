@@ -19,7 +19,7 @@ export default function ChildTabNavigator() {
           marginHorizontal: "5%",
           height: 78,
           paddingBottom: 8,
-          backgroundColor: "#92DAE8",
+          backgroundColor: "#4B9EF2",
           borderRadius: 24,
           borderTopWidth: 0,
           elevation: 8,
@@ -40,8 +40,8 @@ export default function ChildTabNavigator() {
           marginTop: 2,
         },
 
-        tabBarActiveTintColor: "#228390",
-        tabBarInactiveTintColor: "#7D7D7D",
+        tabBarActiveTintColor: "#F2B84B",
+        tabBarInactiveTintColor: "#FAFAFA",
       }}
     >
       {/* HOME */}
