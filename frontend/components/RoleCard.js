@@ -24,7 +24,7 @@ const RoleCard = ({
           <MaterialCommunityIcons
             name={iconName}
             size={iconSize}
-            color="#7D7D7D"
+            color="#FFFFFF"
           />
         ) : null}
       </View>
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   card: {
     width: 140,
     height: 200,
-    backgroundColor: "#C0EAF0",
+    backgroundColor: "#3793F0",
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 
   selectedCard: {
     borderWidth: 2,
-    borderColor: "#228390",
+    borderColor: "#000000",
   },
 
   iconWrapper: {
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 17,
     fontFamily: "SFCompactRounded-Semibold",
-    color: "#7D7D7D",
+    color: "#FAFAFA",
   },
 
   /* RADIO */
@@ -93,13 +93,13 @@ const styles = StyleSheet.create({
   },
 
   radioOuterSelected: {
-    borderColor: "#228390",
+    borderColor: "#000000",
   },
 
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#228390",
+    backgroundColor: "#000000",
   },
 });

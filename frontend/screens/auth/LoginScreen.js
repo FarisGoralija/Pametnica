@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from "react-native";
 
 import CustomInput from "../../components/CustomInput";
@@ -94,7 +95,7 @@ const LoginScreen = ({ navigation, route }) => {
             <MaterialCommunityIcons
               name="chevron-left"
               size={50}
-              color="#B0E5DD"
+              color="#2787CC"
             />
           </TouchableOpacity>
 
@@ -102,7 +103,7 @@ const LoginScreen = ({ navigation, route }) => {
 
           {/* ROLE SUBTITLE */}
           <Text style={styles.roleSubtitle}>
-            {role === "parent" ? "Račun za roditelje" : "Račun za djecu"}
+            {role === "parent" ? "Račun za seniore" : "Račun za juniore"}
           </Text>
 
           <View style={styles.contentContainer}>
@@ -152,6 +153,15 @@ const LoginScreen = ({ navigation, route }) => {
             {errorMessage ? (
               <Text style={styles.statusErrorText}>{errorMessage}</Text>
             ) : null}
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>© Downsy. Sva prava zadržana.</Text>
+            <Image
+              source={require("../../assets/logo downsy.png")}
+              style={styles.footerIcon}
+              resizeMode="contain"
+            />
           </View>
         </View>
       </ScrollView>
@@ -239,6 +249,28 @@ const styles = StyleSheet.create({
     fontFamily: "sf-rounded-regular",
   },
 
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 24,
+    marginBottom: 12,
+  },
+
+  footerText: {
+    fontSize: 12,
+    fontFamily: "sf-rounded-regular",
+    color: "#7D7D7D",
+  },
+
+  footerIcon: {
+    marginLeft: 8,
+    width: 40,
+    height: 40,
+    //borderWidth: 0.5,
+    borderColor: "#000",
+    borderRadius: 0,
+  },
 });
 
 export default LoginScreen;

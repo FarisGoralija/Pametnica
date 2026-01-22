@@ -70,7 +70,7 @@ const AddListModal = ({ visible, onClose }) => {
         <ActionButton
           icon="plus"
           label="Nova lista"
-          color="#12C7E5"
+          color="#3793F0"
           onPress={() => startList(LIST_TYPE_NORMAL)}
         />
 

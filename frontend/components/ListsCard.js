@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const ListsCard = ({
@@ -18,16 +12,24 @@ const ListsCard = ({
   lists = [],
   onCardPress,
   renderExtraAction,
+  cardHeight = 300,
+  listMaxHeight = 190,
+  centerEmpty = false,
 }) => {
   return (
-    <View style={[styles.card, { backgroundColor }]}>
+    <View style={[styles.card, { backgroundColor, height: cardHeight }]}>
       {/* TITLE */}
       <Text style={styles.title}>{title}</Text>
 
       {/* CONTENT */}
       <View style={styles.center}>
         {lists.length === 0 ? (
-          <View style={styles.emptyContainer}>
+          <View
+            style={[
+              styles.emptyContainer,
+              centerEmpty && styles.emptyContainerCentered,
+            ]}
+          >
             {icon}
 
             <Text style={styles.empty}>{emptyText}</Text>
@@ -39,7 +41,7 @@ const ListsCard = ({
             )}
           </View>
         ) : (
-          <View style={styles.listContainer}>
+          <View style={[styles.listContainer, { maxHeight: listMaxHeight }]}>
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 4 }}
@@ -119,6 +121,11 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     alignItems: "center",
+  },
+
+  emptyContainerCentered: {
+    flex: 1,
+    justifyContent: "center",
   },
 
   center: {

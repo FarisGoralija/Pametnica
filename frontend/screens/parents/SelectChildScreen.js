@@ -32,15 +32,15 @@ const SelectChildScreen = () => {
     <SafeAreaView style={styles.container}>
       {/* HEADER (NO BACK BUTTON) */}
       <HeaderComponent
-        title="Odaberi dijete"
-        subtitle="Izaberite dijete za koje želite pregledati liste"
+        title="Odaberi juniora"
+        subtitle="Izaberite juniora za koje želite pregledati liste"
       />
 
       {childrenList.length === 0 ? (
         /* EMPTY STATE */
         <View style={styles.emptyWrapper}>
           <Text style={styles.emptyText}>
-            Nemate dodanu djecu. Da biste nastavili, prvo dodajte dijete.
+            Nemate dodanu djecu. Da biste nastavili, prvo dodajte junior korisnika.
           </Text>
 
           <TouchableOpacity
@@ -51,7 +51,7 @@ const SelectChildScreen = () => {
               })
             }
           >
-            <Text style={styles.addChildText}>Dodaj dijete</Text>
+            <Text style={styles.addChildText}>Dodaj junior korisnika</Text>
           </TouchableOpacity>
         </View>
       ) : (

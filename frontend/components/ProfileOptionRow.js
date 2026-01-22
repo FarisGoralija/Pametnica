@@ -22,7 +22,7 @@ export default ProfileOptionRow;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#C0EAF0",
+    backgroundColor: "#56A0E3",
     borderRadius: 10,
     paddingHorizontal: 16,
     minHeight: 60, // ✅ flexible height
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     fontFamily: "SFCompactRounded-Regular",
-    color: "#7D7D7D",
+    color: "#FAFAFA",
     marginLeft: 14,
   },
 });

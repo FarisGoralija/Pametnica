@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 
   backIcon: {
     fontSize: 48,
-    color: "#B0E5DD",
+    color: "#2787CC",
     lineHeight: 48,
   },
 
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 28,
-    color: "#B0E5DD",
+    color: "#2787CC",
     marginBottom: 8,
     fontFamily: "SFCompactRounded-Bold",
     textAlign: "center",

@@ -88,7 +88,7 @@ const ParentListsScreen = ({ route }) => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.headerWrapper}>
-        <HeaderWithBack title="Pregled dječije liste" subtitle="" />
+        <HeaderWithBack title="Pregled junior liste" subtitle="" />
       </View>
 
       {/* BACKGROUND CURVE */}
@@ -128,10 +128,13 @@ const ParentListsScreen = ({ route }) => {
             title="Liste na čekanju"
             emptyText="Nema lista na čekanju"
             backgroundColor="#77D9D9"
+            cardHeight={380}
+            listMaxHeight={260}
+            centerEmpty
             icon={
               <MaterialCommunityIcons
                 name="clock-outline"
-                size={60}
+                size={80}
                 color="#fff"
               />
             }
@@ -148,10 +151,13 @@ const ParentListsScreen = ({ route }) => {
             title="Odobrene liste"
             emptyText="Nema odobrenih lista"
             backgroundColor="#77D9D9"
+            cardHeight={380}
+            listMaxHeight={260}
+            centerEmpty
             icon={
               <MaterialCommunityIcons
                 name="check-circle-outline"
-                size={60}
+                size={80}
                 color="#fff"
               />
             }
@@ -233,7 +239,7 @@ const styles = StyleSheet.create({
   },
 
   activeTab: {
-    backgroundColor: "#12C7E5",
+    backgroundColor: "#3793F0",
   },
 
   tabText: {

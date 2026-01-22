@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     width: 300,               // ✅ FIXED WIDTH (matches inputs)
     height: 52,               // ✅ FIXED HEIGHT (Android-safe)
     borderRadius: 16,
-    backgroundColor: "#7CCDD4",
+    backgroundColor: "#56A0E3",
     alignItems: "center",
     justifyContent: "center",
 
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
 
   buttonDisabled: {
-    backgroundColor: "#C0EAF0",
+    backgroundColor: "#67AEF5",
   },
 
   buttonText: {

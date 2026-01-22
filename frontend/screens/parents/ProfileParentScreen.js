@@ -25,7 +25,7 @@ const ProfileParentScreen = () => {
             <MaterialCommunityIcons
               name="account-outline"
               size={24}
-              color="#7D7D7D"
+              color="#FAFAFA"
             />
           }
           text="Detalji profila"
@@ -37,16 +37,16 @@ const ProfileParentScreen = () => {
             <MaterialCommunityIcons
               name="account-child-outline"
               size={24}
-              color="#7D7D7D"
+              color="#FAFAFA"
             />
           }
-          text="Tvoja djeca"
+          text="Juniori korisnici"
           onPress={() => navigation.navigate("ChildrenList")}
         />
 
         <ProfileOptionRow
           icon={
-            <MaterialCommunityIcons name="cash" size={24} color="#7D7D7D" />
+            <MaterialCommunityIcons name="cash" size={24} color="#FAFAFA" />
           }
           text="Postavi mjesečni budžet"
           onPress={() => navigation.navigate("ChooseChildForBudget")}
@@ -57,7 +57,7 @@ const ProfileParentScreen = () => {
             <MaterialCommunityIcons
               name="currency-usd-off"
               size={24}
-              color="#7D7D7D"
+              color="#FAFAFA"
             />
           }
           text="Skini bodove"

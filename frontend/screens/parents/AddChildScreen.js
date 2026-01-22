@@ -96,7 +96,7 @@ const AddChildScreen = () => {
         })
       );
     } catch (err) {
-      setErrorMessage(err.message || "Registracija djeteta nije uspjela.");
+      setErrorMessage(err.message || "Registracija junior korisnika nije uspjela.");
     } finally {
       setLoading(false);
     }
@@ -117,7 +117,7 @@ const AddChildScreen = () => {
             marginHorizontal: "5%",
             height: 78,
             paddingBottom: 8,
-            backgroundColor: "#92DAE8",
+            backgroundColor: "#4B9EF2",
             borderRadius: 24,
             borderTopWidth: 0,
             elevation: 8,
@@ -141,7 +141,7 @@ const AddChildScreen = () => {
             {/* HEADER */}
             <View style={styles.headerWrapper}>
               <HeaderWithBack
-                title="Registracija djeteta"
+                title="Registracija junior korisnika"
                 subtitle="Unesite osnovne podatke"
               />
             </View>
@@ -157,7 +157,7 @@ const AddChildScreen = () => {
               />
 
               <CustomInput
-                placeholder="Email djeteta"
+                placeholder="Email junior korisnika"
                 value={email}
                 onChangeText={(t) => {
                   setEmail(t);

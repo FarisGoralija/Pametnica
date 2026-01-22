@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   codeBox: {
     width: 60,
     height: 65,
-    backgroundColor: "#C0EAF0",
+    backgroundColor: "#E53935",
     borderRadius: 12,
     marginHorizontal: 6,
     justifyContent: "center",

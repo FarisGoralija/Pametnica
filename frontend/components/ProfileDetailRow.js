@@ -45,7 +45,7 @@ export default ProfileDetailRow;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#C0EAF0",
+    backgroundColor: "#56A0E3",
     borderRadius: 10,
     paddingHorizontal: 16,
 
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 14, // 🔥 VERY IMPORTANT
     fontFamily: "SFCompactRounded-Regular",
-    color: "#7D7D7D",
+    color: "#FAFAFA",
     marginBottom: 2,
   },
 
@@ -80,6 +80,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 18, // 🔥 VERY IMPORTANT
     fontFamily: "SFCompactRounded-Semibold",
-    color: "#4A4A4A",
+    color: "#FAFAFA",
   },
 });

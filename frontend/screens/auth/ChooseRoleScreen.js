@@ -17,13 +17,13 @@ const ChooseRoleScreen = ({ navigation }) => {
 
       <HeaderComponent
         title="Odaberite način prijave"
-        subtitle="Nastavite kao roditelj ili kao dijete."
+        subtitle="Nastavite kao senior ili kao junior."
       />
 
       {/* CARDS */}
       <View style={styles.cardContainer}>
         <RoleCard
-          title="Roditelj"
+          title="Senior"
           iconName="account-group"
           isSelected={selectedRole === "parent"}
           onPress={() => setSelectedRole("parent")}
@@ -32,8 +32,8 @@ const ChooseRoleScreen = ({ navigation }) => {
         <View style={{ width: 20 }} />
 
         <RoleCard
-          title="Dijete"
-          iconName="baby-face-outline"
+          title="Junior"
+          iconName="emoticon-happy-outline"
           isSelected={selectedRole === "child"}
           onPress={() => setSelectedRole("child")}
         />

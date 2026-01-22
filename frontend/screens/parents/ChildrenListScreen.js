@@ -27,7 +27,7 @@ const ChildrenListScreen = () => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.headerWrapper}>
-        <HeaderWithBack title="Tvoja djeca" subtitle="" />
+        <HeaderWithBack title="Junior korisnici" subtitle="" />
       </View>
 
       {/* CONTENT */}
@@ -47,9 +47,9 @@ const ChildrenListScreen = () => {
             <MaterialCommunityIcons
               name="plus-circle-outline"
               size={40}
-              color="#7D7D7D"
+              color="#FAFAFA"
             />
-            <Text style={styles.addEmptyText}>Dodaj dijete</Text>
+            <Text style={styles.addEmptyText}>Dodaj junior korisnika</Text>
           </TouchableOpacity>
         ) : (
           <>
@@ -59,7 +59,7 @@ const ChildrenListScreen = () => {
                 <MaterialCommunityIcons
                   name="emoticon-happy-outline"
                   size={24}
-                  color="#7D7D7D"
+                  color="#FAFAFA"
                 />
 
                 <View style={{ marginLeft: 14 }}>
@@ -76,7 +76,7 @@ const ChildrenListScreen = () => {
                     allowFontScaling={false}
                     includeFontPadding={false}
                   >
-                {child.name || child.fullName || "Dijete"}
+                {child.name || child.fullName || "Junior"}
                   </Text>
                 </View>
               </View>
@@ -87,7 +87,7 @@ const ChildrenListScreen = () => {
               activeOpacity={0.7}
               onPress={() => navigation.navigate("AddChild")}
             >
-              <Text style={styles.addMoreText}>Dodaj dijete</Text>
+              <Text style={styles.addMoreText}>Dodaj junior korisnika</Text>
             </TouchableOpacity>
           </>
         )}
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
 
   childCard: {
-    backgroundColor: "#C0EAF0",
+    backgroundColor: "#56A0E3",
     borderRadius: 10,
     minHeight: 72, // ✅ FIXED VISUAL HEIGHT
     paddingHorizontal: 16,
@@ -127,14 +127,14 @@ const styles = StyleSheet.create({
   childLabel: {
     fontSize: 12,
     lineHeight: 14, // ✅ important
-    color: "#7D7D7D",
+    color: "#FAFAFA",
     fontFamily: "SFCompactRounded-Regular",
   },
 
   childName: {
     fontSize: 16,
     lineHeight: 18, // ✅ important
-    color: "#4A4A4A",
+    color: "#FAFAFA",
     fontFamily: "SFCompactRounded-Semibold",
   },
 

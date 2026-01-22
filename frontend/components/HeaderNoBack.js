@@ -20,13 +20,13 @@ const styles = StyleSheet.create({
   },
  title: {
   fontSize: 28,
-  color: '#B0E5DD',
+  color: '#2787CC',
   textAlign: 'center',
   marginBottom: 8,
   fontFamily: 'SFCompactRounded-Bold', // <-- add this
 },
 subtitle: {
-  fontSize: 15,
+  fontSize: 18,
   color: '#AFAFAF',
   textAlign: 'center',
   fontFamily: 'SFCompactRounded-Semibold', // <-- add this
