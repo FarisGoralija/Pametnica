@@ -40,7 +40,7 @@ const ProfileParentScreen = () => {
               color="#7D7D7D"
             />
           }
-          text="Tvoja djeca"
+          text="Juniori korisnici"
           onPress={() => navigation.navigate("ChildrenList")}
         />
 

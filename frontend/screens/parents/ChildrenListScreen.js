@@ -27,7 +27,7 @@ const ChildrenListScreen = () => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.headerWrapper}>
-        <HeaderWithBack title="Tvoja djeca" subtitle="" />
+        <HeaderWithBack title="Junior korisnici" subtitle="" />
       </View>
 
       {/* CONTENT */}
@@ -49,7 +49,7 @@ const ChildrenListScreen = () => {
               size={40}
               color="#7D7D7D"
             />
-            <Text style={styles.addEmptyText}>Dodaj dijete</Text>
+            <Text style={styles.addEmptyText}>Dodaj junior korisnika</Text>
           </TouchableOpacity>
         ) : (
           <>
@@ -76,7 +76,7 @@ const ChildrenListScreen = () => {
                     allowFontScaling={false}
                     includeFontPadding={false}
                   >
-                {child.name || child.fullName || "Dijete"}
+                {child.name || child.fullName || "Junior"}
                   </Text>
                 </View>
               </View>
@@ -87,7 +87,7 @@ const ChildrenListScreen = () => {
               activeOpacity={0.7}
               onPress={() => navigation.navigate("AddChild")}
             >
-              <Text style={styles.addMoreText}>Dodaj dijete</Text>
+              <Text style={styles.addMoreText}>Dodaj junior korisnika</Text>
             </TouchableOpacity>
           </>
         )}

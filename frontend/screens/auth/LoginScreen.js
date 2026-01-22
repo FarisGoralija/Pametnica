@@ -102,7 +102,7 @@ const LoginScreen = ({ navigation, route }) => {
 
           {/* ROLE SUBTITLE */}
           <Text style={styles.roleSubtitle}>
-            {role === "parent" ? "Račun za roditelje" : "Račun za djecu"}
+            {role === "parent" ? "Račun za seniore" : "Račun za juniore"}
           </Text>
 
           <View style={styles.contentContainer}>

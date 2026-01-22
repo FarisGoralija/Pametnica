@@ -88,7 +88,7 @@ const ParentListsScreen = ({ route }) => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.headerWrapper}>
-        <HeaderWithBack title="Pregled dječije liste" subtitle="" />
+        <HeaderWithBack title="Pregled junior liste" subtitle="" />
       </View>
 
       {/* BACKGROUND CURVE */}

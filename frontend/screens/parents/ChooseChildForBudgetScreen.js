@@ -44,7 +44,7 @@ const ChooseChildForBudgetScreen = () => {
       <View style={styles.headerWrapper}>
         <HeaderWithBack
           title="Postavi mjesečni budžet"
-          subtitle="Odaberite dijete za koje želite postaviti mjesečni budžet"
+          subtitle="Odaberite junior korisnika za koje želite postaviti mjesečni budžet"
         />
       </View>
 
@@ -57,15 +57,15 @@ const ChooseChildForBudgetScreen = () => {
         ) : childrenList.length === 0 ? (
           <>
             <Text style={styles.emptyText}>
-              Nemate dodanu djecu. Da biste postavili mjesečni budžet, prvo
-              dodajte dijete.
+              Nemate dodanog junior korisnika. Da biste postavili mjesečni budžet, prvo
+              dodajte juniora.
             </Text>
 
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => navigation.navigate("AddChild")}
             >
-              <Text style={styles.addChildText}>Dodaj dijete</Text>
+              <Text style={styles.addChildText}>Dodaj junior korisnika</Text>
             </TouchableOpacity>
           </>
         ) : (
@@ -79,7 +79,7 @@ const ChooseChildForBudgetScreen = () => {
               {childrenList.map((child) => (
                 <RoleCard
                   key={child.id}
-                  title={(child.name || "").split(" ")[0] || "Dijete"}
+                  title={(child.name || "").split(" ")[0] || "Junior"}
                   icon={
                     <MaterialCommunityIcons
                       name="emoticon-happy-outline"

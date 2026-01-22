@@ -350,7 +350,7 @@ const NewListScreen = () => {
             style={{ marginRight: 6 }}
           />
           <Text style={styles.sendText}>
-            {listType === 2 ? "Dodaj listu" : "Pošalji roditelju"}
+            {listType === 2 ? "Dodaj listu" : "Pošalji na odobrenje"}
           </Text>
         </TouchableOpacity>
 

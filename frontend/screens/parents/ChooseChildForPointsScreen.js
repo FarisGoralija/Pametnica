@@ -45,7 +45,7 @@ const ChooseChildForPointsScreen = () => {
       <View style={styles.headerWrapper}>
         <HeaderWithBack
           title="Skini bodove"
-          subtitle="Odaberite dijete kojem želite skinuti bodove"
+          subtitle="Odaberite juniora kojem želite skinuti bodove"
         />
       </View>
 
@@ -58,14 +58,14 @@ const ChooseChildForPointsScreen = () => {
         ) : childrenList.length === 0 ? (
           <>
             <Text style={styles.emptyText}>
-              Nemate dodanu djecu. Da biste skinuli bodove, prvo dodajte dijete.
+              Nemate dodanu djecu. Da biste skinuli bodove, prvo dodajte juniora.
             </Text>
 
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => navigation.navigate("AddChild")}
             >
-              <Text style={styles.addChildText}>Dodaj dijete</Text>
+              <Text style={styles.addChildText}>Dodaj juniora</Text>
             </TouchableOpacity>
           </>
         ) : (
@@ -79,7 +79,7 @@ const ChooseChildForPointsScreen = () => {
               {childrenList.map((child, index) => (
                 <RoleCard
                   key={child.id}
-                  title={(child.name || "").split(" ")[0] || "Dijete"}
+                  title={(child.name || "").split(" ")[0] || "Junior"}
                   icon={
                     <MaterialCommunityIcons
                       name="emoticon-happy-outline"
