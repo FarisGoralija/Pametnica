@@ -33,7 +33,7 @@ const ChooseRoleScreen = ({ navigation }) => {
 
         <RoleCard
           title="Junior"
-          iconName="baby-face-outline"
+          iconName="emoticon-happy-outline"
           isSelected={selectedRole === "child"}
           onPress={() => setSelectedRole("child")}
         />
