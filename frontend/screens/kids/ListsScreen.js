@@ -172,10 +172,12 @@ const ListsScreen = () => {
             emptyText="Tvoje liste su prazne"
             buttonText="Kreiraj novu listu"
             backgroundColor="#77D9D9"
+            cardHeight={380}
+            listMaxHeight={260}
             icon={
               <MaterialCommunityIcons
                 name="format-list-bulleted"
-                size={60}
+                size={80}
                 color="#fff"
               />
             }
@@ -203,10 +205,12 @@ const ListsScreen = () => {
             emptyText="Nema lista na čekanju"
             buttonText="Kreiraj novu listu"
             backgroundColor="#77D9D9"
+            cardHeight={380}
+            listMaxHeight={260}
             icon={
               <MaterialCommunityIcons
                 name="clock-outline"
-                size={60}
+                size={80}
                 color="#fff"
               />
             }

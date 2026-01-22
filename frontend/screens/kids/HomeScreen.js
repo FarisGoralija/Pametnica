@@ -5,6 +5,7 @@ import {
   ScrollView,
   Text,
   RefreshControl,
+  Platform,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     width: "100%",
-    height: "55%",
+    height: "50%",
     backgroundColor: "#BDEFF4",
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
@@ -222,8 +223,8 @@ const styles = StyleSheet.create({
 
   content: {
     paddingHorizontal: 16,
-    paddingTop: 40,
-    paddingBottom: 40,
+    paddingTop: 24,
+    paddingBottom: Platform.OS === "android" ? 40 : 50,
   },
 
   title: {

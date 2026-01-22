@@ -128,10 +128,13 @@ const ParentListsScreen = ({ route }) => {
             title="Liste na čekanju"
             emptyText="Nema lista na čekanju"
             backgroundColor="#77D9D9"
+            cardHeight={380}
+            listMaxHeight={260}
+            centerEmpty
             icon={
               <MaterialCommunityIcons
                 name="clock-outline"
-                size={60}
+                size={80}
                 color="#fff"
               />
             }
@@ -148,10 +151,13 @@ const ParentListsScreen = ({ route }) => {
             title="Odobrene liste"
             emptyText="Nema odobrenih lista"
             backgroundColor="#77D9D9"
+            cardHeight={380}
+            listMaxHeight={260}
+            centerEmpty
             icon={
               <MaterialCommunityIcons
                 name="check-circle-outline"
-                size={60}
+                size={80}
                 color="#fff"
               />
             }

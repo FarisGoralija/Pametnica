@@ -358,7 +358,7 @@ const ListDetailsScreen = ({ route }) => {
         <MaterialCommunityIcons
           name="checkbox-blank-circle-outline"
           size={26}
-          color="#3793F0"
+          color="#12C7E5"
         />
         <Text style={styles.itemText}>{item.name}</Text>
 
@@ -370,7 +370,7 @@ const ListDetailsScreen = ({ route }) => {
             disabled={verifyingItemId !== null}
           >
             {isVerifying ? (
-              <ActivityIndicator size="small" color="#3793F0" />
+              <ActivityIndicator size="small" color="#12C7E5" />
             ) : (
               <Text style={styles.cameraEmoji}>📷</Text>
             )}
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 10,
     borderWidth: 2,
-    borderColor: "#3793F0",
+    borderColor: "#12C7E5",
   },
 
   itemText: {
