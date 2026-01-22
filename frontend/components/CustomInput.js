@@ -21,7 +21,7 @@ const CustomInput = ({
         <MaterialCommunityIcons
           name={iconName}
           size={24}
-          color={error ? "#E53935" : "#AFAFAF"}
+          color={error ? "#E53935" : "#FFFFFF"}
           style={styles.icon}
         />
       )}
@@ -34,7 +34,7 @@ const CustomInput = ({
         onChangeText={onChangeText}
         secureTextEntry={isSecure}
         keyboardType={keyboardType}
-        placeholderTextColor="#AFAFAF"
+        placeholderTextColor="#E8ECFF"
       />
 
       {/* EYE ICON */}
@@ -43,7 +43,7 @@ const CustomInput = ({
           <MaterialCommunityIcons
             name={isSecure ? "eye-off-outline" : "eye-outline"}
             size={22}
-            color={error ? "#E53935" : "#7D7D7D"}
+            color={error ? "#E53935" : "#FFFFFF"}
           />
         </TouchableOpacity>
       )}
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 300,
     height: 44, // 👈 this controls vertical center
-    backgroundColor: "#C0EAF0",
+    backgroundColor: "#3793F0",
     borderRadius: 15,
     paddingHorizontal: 15,
     marginVertical: 10,
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontFamily: "SFCompactRounded-Bold",
-    color: "#7D7D7D",
+    color: "#FFFFFF",
 
     // ✅ ANDROID FIXES
     includeFontPadding: false, // 🔥 removes Android ghost padding

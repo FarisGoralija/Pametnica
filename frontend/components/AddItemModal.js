@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    backgroundColor: "#12C7E5", // isti accent kao RenameListModal
+    backgroundColor: "#3793F0", // isti accent kao RenameListModal
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",

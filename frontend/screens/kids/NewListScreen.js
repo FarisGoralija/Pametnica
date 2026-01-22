@@ -267,7 +267,7 @@ const NewListScreen = () => {
                   <MaterialCommunityIcons
                     name="check-circle-outline"
                     size={26}
-                    color="#12C7E5"
+                    color="#3793F0"
                   />
 
                   <Text style={styles.itemText}>{item.text}</Text>
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   sendButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#12C7E5",
+    backgroundColor: "#3793F0",
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 16,
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#12C7E5",
+    backgroundColor: "#3793F0",
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 22,
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
 
     borderWidth: 2,
-    borderColor: "#12C7E5",
+    borderColor: "#3793F0",
   },
 
   itemText: {

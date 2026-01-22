@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   content: { marginTop: 30, paddingHorizontal: 20 },
   errorText: {
     marginTop: 12,
-    color: "#E53935",
+    color: "#56A0E3",
     fontSize: 14,
     textAlign: "center",
   },
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalButton: {
-    backgroundColor: "#12C7E5",
+    backgroundColor: "#3793F0",
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",

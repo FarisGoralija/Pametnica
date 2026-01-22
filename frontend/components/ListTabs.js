@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
   },
   activeTab: {
-    backgroundColor: "#12C7E5",
+    backgroundColor: "#3793F0",
   },
   text: {
     fontSize: 14,

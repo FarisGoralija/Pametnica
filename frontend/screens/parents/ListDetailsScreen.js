@@ -164,7 +164,7 @@ const ListDetailsScreen = () => {
                   <MaterialCommunityIcons
                     name={isApproved ? "check-circle" : "check-circle-outline"}
                     size={26}
-                    color={isApproved ? "#16A34A" : "#12C7E5"}
+                    color={isApproved ? "#16A34A" : "#3793F0"}
                   />
 
                   {/* TEXT / INPUT */}
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 10,
     borderWidth: 2,
-    borderColor: "#12C7E5",
+    borderColor: "#3793F0",
   },
 
   itemText: {
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
 
   saveButton: {
     marginTop: 16,
-    backgroundColor: "#12C7E5",
+    backgroundColor: "#3793F0",
     paddingVertical: 16,
     borderRadius: 18,
     alignItems: "center",
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#12C7E5",
+    backgroundColor: "#3793F0",
     paddingVertical: 12,
     borderRadius: 14,
   },

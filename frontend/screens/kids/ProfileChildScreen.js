@@ -23,7 +23,7 @@ const ProfileChildScreen = () => {
             <MaterialCommunityIcons
               name="account-outline"
               size={24}
-              color="#7D7D7D"
+              color="#FAFAFA"
             />
           }
           text="Detalji profila"

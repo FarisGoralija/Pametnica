@@ -84,7 +84,7 @@ const ChooseChildForPointsScreen = () => {
                     <MaterialCommunityIcons
                       name="emoticon-happy-outline"
                       size={48}
-                      color="#7D7D7D"
+                      color="#FAFAFA"
                     />
                   }
                   isSelected={selectedChildId === child.id}

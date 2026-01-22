@@ -47,7 +47,7 @@ const ChildrenListScreen = () => {
             <MaterialCommunityIcons
               name="plus-circle-outline"
               size={40}
-              color="#7D7D7D"
+              color="#FAFAFA"
             />
             <Text style={styles.addEmptyText}>Dodaj junior korisnika</Text>
           </TouchableOpacity>
@@ -59,7 +59,7 @@ const ChildrenListScreen = () => {
                 <MaterialCommunityIcons
                   name="emoticon-happy-outline"
                   size={24}
-                  color="#7D7D7D"
+                  color="#FAFAFA"
                 />
 
                 <View style={{ marginLeft: 14 }}>
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
 
   childCard: {
-    backgroundColor: "#C0EAF0",
+    backgroundColor: "#56A0E3",
     borderRadius: 10,
     minHeight: 72, // ✅ FIXED VISUAL HEIGHT
     paddingHorizontal: 16,
@@ -127,14 +127,14 @@ const styles = StyleSheet.create({
   childLabel: {
     fontSize: 12,
     lineHeight: 14, // ✅ important
-    color: "#7D7D7D",
+    color: "#FAFAFA",
     fontFamily: "SFCompactRounded-Regular",
   },
 
   childName: {
     fontSize: 16,
     lineHeight: 18, // ✅ important
-    color: "#4A4A4A",
+    color: "#FAFAFA",
     fontFamily: "SFCompactRounded-Semibold",
   },
 

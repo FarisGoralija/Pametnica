@@ -94,7 +94,7 @@ const LoginScreen = ({ navigation, route }) => {
             <MaterialCommunityIcons
               name="chevron-left"
               size={50}
-              color="#B0E5DD"
+              color="#2787CC"
             />
           </TouchableOpacity>
 

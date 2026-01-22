@@ -111,7 +111,7 @@ const HomeScreen = () => {
           balanceLabel="Dostupni novac"
           balanceValue={balance}
           maxBalance={allowance || 200}
-          backgroundColor="#12C7E5"
+          backgroundColor="#3793F0"
           avatarIcon={
             <MaterialCommunityIcons name="account" size={28} color="#fff" />
           }
@@ -124,7 +124,7 @@ const HomeScreen = () => {
         <View style={styles.row}>
           <ActionSquare
             title="Dodaj listu"
-            backgroundColor="#12C7E5"
+            backgroundColor="#3793F0"
             icon={<MaterialCommunityIcons name="plus" size={50} color="#fff" />}
             onPress={() => setShowAddList(true)}
           />
@@ -133,7 +133,7 @@ const HomeScreen = () => {
 
           <ActionSquare
             title="Pregled listi"
-            backgroundColor="#6AD2A5"
+            backgroundColor="#17FC20"
             icon={
               <MaterialCommunityIcons
                 name="clipboard-text"
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: "700",
-    color: "#8EDDDD",
+    color: "#2787CC",
     textAlign: "center",
     marginBottom: 20,
   },
