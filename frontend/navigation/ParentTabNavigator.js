@@ -10,13 +10,14 @@ export default function ParentTabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        safeAreaInsets: { bottom: 0 },
 
         tabBarStyle: {
           position: "absolute",
-          bottom: 30,
+          bottom: 8,
           marginHorizontal: "5%",
           height: 78, // ⬅️ slightly taller
-          paddingBottom: 8, // ⬅️ FIXES iOS CLIPPING
+          paddingBottom: 10, // ⬅️ consistent cushion without relying on insets
           backgroundColor: "#4B9EF2",
           borderRadius: 24,
           borderTopWidth: 0,

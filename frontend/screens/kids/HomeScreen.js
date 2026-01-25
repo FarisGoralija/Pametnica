@@ -134,7 +134,7 @@ const HomeScreen = () => {
 
           <ActionSquare
             title="Pregled listi"
-            backgroundColor="#17FC20"
+            backgroundColor="#0af5aa"
             icon={
               <MaterialCommunityIcons
                 name="clipboard-text"

@@ -1,16 +1,50 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useMemo, useRef } from "react";
+import {
+  Text,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  Animated,
+} from "react-native";
 
 const ActionSquare = ({ title, icon, backgroundColor, onPress }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const animatedStyle = useMemo(
+    () => ({
+      transform: [{ scale }],
+    }),
+    [scale]
+  );
+
+  const handlePressIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.96,
+      useNativeDriver: false,
+      friction: 6,
+      tension: 120,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: false,
+      friction: 8,
+      tension: 120,
+    }).start();
+  };
+
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      style={[styles.card, { backgroundColor }]}
+    <TouchableWithoutFeedback
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       onPress={onPress}
     >
-      {icon}
-      <Text style={styles.text}>{title}</Text>
-    </TouchableOpacity>
+      <Animated.View style={[styles.card, animatedStyle, { backgroundColor }]}>
+        {icon}
+        <Text style={styles.text}>{title}</Text>
+      </Animated.View>
+    </TouchableWithoutFeedback>
   );
 };
 

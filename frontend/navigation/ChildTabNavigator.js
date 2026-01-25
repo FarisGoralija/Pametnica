@@ -12,13 +12,14 @@ export default function ChildTabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        safeAreaInsets: { bottom: 0 },
 
         tabBarStyle: {
           position: "absolute",
-          bottom: 30,
+          bottom: 8,
           marginHorizontal: "5%",
           height: 78,
-          paddingBottom: 8,
+          paddingBottom: 10,
           backgroundColor: "#4B9EF2",
           borderRadius: 24,
           borderTopWidth: 0,
