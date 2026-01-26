@@ -134,7 +134,7 @@ const HomeScreen = () => {
 
           <ActionSquare
             title="Pregled listi"
-            backgroundColor="#17FC20"
+            backgroundColor="#0af5aa"
             icon={
               <MaterialCommunityIcons
                 name="clipboard-text"
@@ -184,21 +184,19 @@ const HomeScreen = () => {
         onClose={() => setShowAddList(false)}
         onNewList={() => {
           setShowAddList(false);
-
-          requestAnimationFrame(() => {
+          setTimeout(() => {
             navigation.navigate("Liste", {
               screen: "NewListScreen",
             });
-          });
+          }, 180);
         }}
         onUrgentList={() => {
           setShowAddList(false);
-
-          requestAnimationFrame(() => {
+          setTimeout(() => {
             navigation.navigate("Liste", {
               screen: "UrgentListScreen",
             });
-          });
+          }, 180);
         }}
       />
     </View>

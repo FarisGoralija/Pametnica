@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useEffect, useMemo, useRef } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const RoleCard = ({
@@ -10,38 +10,93 @@ const RoleCard = ({
   isSelected,
   onPress,
 }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+  const glow = useRef(new Animated.Value(0)).current;
+
+  const animatedStyle = useMemo(
+    () => ({
+      transform: [{ scale }],
+      shadowOpacity: glow.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0.1, 0.3],
+      }),
+      elevation: glow.interpolate({
+        inputRange: [0, 1],
+        outputRange: [2, 7],
+      }),
+    }),
+    [glow, scale]
+  );
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: isSelected ? 1.04 : 1,
+      useNativeDriver: false,
+      friction: 7,
+      tension: 140,
+    }).start();
+
+    Animated.timing(glow, {
+      toValue: isSelected ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [glow, isSelected, scale]);
+
+  const handlePressIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.97,
+      useNativeDriver: false,
+      friction: 6,
+      tension: 120,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scale, {
+      toValue: isSelected ? 1.04 : 1,
+      useNativeDriver: false,
+      friction: 7,
+      tension: 140,
+    }).start();
+  };
+
   return (
     <TouchableOpacity
       style={[styles.card, isSelected && styles.selectedCard]}
       activeOpacity={0.7}
       onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
     >
-      {/* ICON */}
-      <View style={styles.iconWrapper}>
-        {icon ? (
-          icon
-        ) : iconName ? (
-          <MaterialCommunityIcons
-            name={iconName}
-            size={iconSize}
-            color="#FFFFFF"
-          />
-        ) : null}
-      </View>
-
-      {/* TITLE */}
-      <Text style={styles.title} allowFontScaling={false}>
-        {title}
-      </Text>
-
-      {/* RADIO INDICATOR */}
-      <View style={styles.radioWrapper}>
-        <View
-          style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}
-        >
-          {isSelected && <View style={styles.radioInner} />}
+      <Animated.View style={[styles.cardInner, animatedStyle]}>
+        {/* ICON */}
+        <View style={styles.iconWrapper}>
+          {icon ? (
+            icon
+          ) : iconName ? (
+            <MaterialCommunityIcons
+              name={iconName}
+              size={iconSize}
+              color="#FFFFFF"
+            />
+          ) : null}
         </View>
-      </View>
+
+        {/* TITLE */}
+        <Text style={styles.title} allowFontScaling={false}>
+          {title}
+        </Text>
+
+        {/* RADIO INDICATOR */}
+        <View style={styles.radioWrapper}>
+          <View
+            style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}
+          >
+            {isSelected && <View style={styles.radioInner} />}
+          </View>
+        </View>
+      </Animated.View>
     </TouchableOpacity>
   );
 };
@@ -54,15 +109,25 @@ const styles = StyleSheet.create({
     height: 200,
     backgroundColor: "#3793F0",
     borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-    position: "relative",
+    padding: 0,
   },
 
   selectedCard: {
     borderWidth: 2,
     borderColor: "#000000",
+  },
+
+  cardInner: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 2,
   },
 
   iconWrapper: {

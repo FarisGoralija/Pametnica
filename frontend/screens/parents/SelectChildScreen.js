@@ -43,16 +43,16 @@ const SelectChildScreen = () => {
             Nemate dodanu djecu. Da biste nastavili, prvo dodajte junior korisnika.
           </Text>
 
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() =>
-              navigation.navigate("Profil", {
-                screen: "AddChild",
-              })
-            }
-          >
-            <Text style={styles.addChildText}>Dodaj junior korisnika</Text>
-          </TouchableOpacity>
+          <View style={styles.emptyButtonWrapper}>
+            <NextButton
+              title="Dodaj junior korisnika"
+              onPress={() =>
+                navigation.navigate("Profil", {
+                  screen: "AddChild",
+                })
+              }
+            />
+          </View>
         </View>
       ) : (
         <>
@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
+    paddingTop: 40,
   },
 
   listWrapper: {
@@ -122,9 +123,10 @@ const styles = StyleSheet.create({
   /* EMPTY STATE */
   emptyWrapper: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
     paddingHorizontal: 40,
+    paddingTop: 60,
   },
 
   emptyText: {
@@ -135,10 +137,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  addChildText: {
-    marginTop: 12,
-    fontSize: 14,
-    fontFamily: "SFCompactRounded-Semibold",
-    color: "#228390",
+  emptyButtonWrapper: {
+    marginTop: 24,
+    alignItems: "center",
   },
 });

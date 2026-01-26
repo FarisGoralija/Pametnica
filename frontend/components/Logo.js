@@ -4,7 +4,7 @@ import React from "react";
 import { Text, StyleSheet } from "react-native";
 
 const Logo = () => {
-  return <Text style={styles.logoText}>Planiraj i Kupi</Text>;
+  return <Text style={styles.logoText}>Planiraj i Kupuj</Text>;
 };
 
 const styles = StyleSheet.create({
