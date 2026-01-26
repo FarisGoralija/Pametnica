@@ -108,38 +108,38 @@ const ActionButton = ({ icon, label, onPress, color }) => (
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(0,0,0,0.78)",
   },
   full: {
     flex: 1,
   },
   panel: {
     position: "absolute",
-    bottom: 20,
-    left: 16,
-    right: 16,
+    bottom: 30,
+    left: 12,
+    right: 12,
     backgroundColor: "#fff",
     borderRadius: 24,
-    paddingVertical: 20,
+    paddingVertical: 24,
     elevation: 8,
   },
   action: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 22,
   },
   iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
+    marginRight: 18,
   },
   actionText: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 17,
+    fontWeight: "700",
   },
 });
 
