@@ -67,10 +67,6 @@ const LoginScreen = ({ navigation, route }) => {
       setLoading(false);
     }
   };
-  const handleForgotPassword = () => {
-    navigation.navigate("ForgotPasswordScreen");
-  };
-
   const handleRegister = () => {
     navigation.navigate("RegistrationScreen", { role });
   };
@@ -126,6 +122,8 @@ const LoginScreen = ({ navigation, route }) => {
             />
 
 
+            {/* Forgot password disabled for now */}
+            {/*
             <TouchableOpacity
               onPress={handleForgotPassword}
               style={styles.forgotPasswordButton}
@@ -133,6 +131,7 @@ const LoginScreen = ({ navigation, route }) => {
             >
               <Text style={styles.forgotPasswordText}>Zaboravljena šifra?</Text>
             </TouchableOpacity>
+            */}
           </View>
 
           <View style={styles.buttonWrapper}>
