@@ -14,7 +14,7 @@ export default function ParentTabNavigator() {
 
         tabBarStyle: {
           position: "absolute",
-          bottom: 8,
+          bottom: 24,
           marginHorizontal: "5%",
           height: 78, // ⬅️ slightly taller
           paddingBottom: 10, // ⬅️ consistent cushion without relying on insets

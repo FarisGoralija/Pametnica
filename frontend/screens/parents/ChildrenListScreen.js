@@ -11,6 +11,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import HeaderWithBack from "../../components/HeaderWithBack";
 import { useChildren } from "../../context/ChildrenContext";
+import NextButton from "../../components/NextButton";
 
 const ChildrenListScreen = () => {
   const navigation = useNavigation();
@@ -35,22 +36,18 @@ const ChildrenListScreen = () => {
         {childrenError ? (
           <Text style={styles.errorText}>{childrenError}</Text>
         ) : null}
-        {loadingChildren && childrenList.length === 0 ? (
-          <Text style={styles.loadingText}>Učitavanje...</Text>
-        ) : childrenList.length === 0 ? (
-          // EMPTY STATE
-          <TouchableOpacity
-            style={styles.addEmpty}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("AddChild")}
-          >
-            <MaterialCommunityIcons
-              name="plus-circle-outline"
-              size={40}
-              color="#FAFAFA"
-            />
-            <Text style={styles.addEmptyText}>Dodaj junior korisnika</Text>
-          </TouchableOpacity>
+        {childrenList.length === 0 ? (
+          <>
+            <Text style={styles.emptyText}>
+              Trenutno nemate registrovanog juniora.
+            </Text>
+            <View style={styles.emptyButtonWrapper}>
+              <NextButton
+                title="Dodaj junior korisnika"
+                onPress={() => navigation.navigate("AddChild")}
+              />
+            </View>
+          </>
         ) : (
           <>
             {/* CHILD CARDS */}
@@ -146,24 +143,20 @@ const styles = StyleSheet.create({
     fontFamily: "SFCompactRounded-Semibold",
   },
 
-  addEmpty: {
+  emptyButtonWrapper: {
+    marginTop: 16,
     alignItems: "center",
-    marginTop: 40,
   },
 
-  addEmptyText: {
-    marginTop: 8,
+  emptyText: {
     fontSize: 14,
-    color: "#7D7D7D",
-    fontFamily: "SFCompactRounded-Semibold",
-  },
-
-  loadingText: {
-    textAlign: "center",
-    fontSize: 14,
-    color: "#7D7D7D",
     fontFamily: "SFCompactRounded-Regular",
-    marginBottom: 12,
+    color: "#7D7D7D",
+    textAlign: "center",
+    lineHeight: 20,
+    marginTop: 12,
+    marginBottom: 10,
+    paddingHorizontal: 10,
   },
 
   errorText: {

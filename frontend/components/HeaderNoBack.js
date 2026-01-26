@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     width: '100%', 
     alignItems: 'center',
     marginBottom: 50, // Space between header and role cards
-    paddingTop: 20,
+    paddingTop: 45,
   },
  title: {
   fontSize: 28,

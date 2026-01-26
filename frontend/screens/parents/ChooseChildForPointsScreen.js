@@ -53,20 +53,18 @@ const ChooseChildForPointsScreen = () => {
         {childrenError ? (
           <Text style={styles.errorText}>{childrenError}</Text>
         ) : null}
-        {loadingChildren && childrenList.length === 0 ? (
-          <Text style={styles.loadingText}>Učitavanje...</Text>
-        ) : childrenList.length === 0 ? (
+        {childrenList.length === 0 ? (
           <>
             <Text style={styles.emptyText}>
-              Nemate dodanu djecu. Da biste skinuli bodove, prvo dodajte juniora.
+              Trenutno nemate registrovanog juniora.
             </Text>
 
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate("AddChild")}
-            >
-              <Text style={styles.addChildText}>Dodaj juniora</Text>
-            </TouchableOpacity>
+            <View style={styles.emptyButtonWrapper}>
+              <NextButton
+                title="Dodaj junior korisnika"
+                onPress={() => navigation.navigate("AddChild")}
+              />
+            </View>
           </>
         ) : (
           <>
@@ -140,14 +138,13 @@ const styles = StyleSheet.create({
     color: "#7D7D7D",
     textAlign: "center",
     marginTop: 40,
+    marginBottom: 12,
     lineHeight: 20,
   },
 
-  addChildText: {
-    marginTop: 12,
-    fontSize: 14,
-    fontFamily: "SFCompactRounded-Semibold",
-    color: "#228390",
+  emptyButtonWrapper: {
+    marginTop: 16,
+    alignItems: "center",
   },
 
   loadingText: {

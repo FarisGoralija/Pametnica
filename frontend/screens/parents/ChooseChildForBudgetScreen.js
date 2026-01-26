@@ -52,21 +52,18 @@ const ChooseChildForBudgetScreen = () => {
         {childrenError ? (
           <Text style={styles.errorText}>{childrenError}</Text>
         ) : null}
-        {loadingChildren && childrenList.length === 0 ? (
-          <Text style={styles.loadingText}>Učitavanje...</Text>
-        ) : childrenList.length === 0 ? (
+        {childrenList.length === 0 ? (
           <>
             <Text style={styles.emptyText}>
-              Nemate dodanog junior korisnika. Da biste postavili mjesečni budžet, prvo
-              dodajte juniora.
+              Trenutno nemate registrovanog juniora.
             </Text>
 
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate("AddChild")}
-            >
-              <Text style={styles.addChildText}>Dodaj junior korisnika</Text>
-            </TouchableOpacity>
+            <View style={styles.emptyButtonWrapper}>
+              <NextButton
+                title="Dodaj junior korisnika"
+                onPress={() => navigation.navigate("AddChild")}
+              />
+            </View>
           </>
         ) : (
           <>
@@ -140,7 +137,13 @@ const styles = StyleSheet.create({
     color: "#7D7D7D",
     textAlign: "center",
     marginTop: 40,
+    marginBottom: 12,
     lineHeight: 20,
+  },
+
+  emptyButtonWrapper: {
+    marginTop: 16,
+    alignItems: "center",
   },
 
   addChildText: {
@@ -148,14 +151,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "SFCompactRounded-Semibold",
     color: "#228390",
-  },
-
-  loadingText: {
-    fontSize: 14,
-    fontFamily: "SFCompactRounded-Regular",
-    color: "#7D7D7D",
-    textAlign: "center",
-    marginTop: 16,
   },
 
   errorText: {
