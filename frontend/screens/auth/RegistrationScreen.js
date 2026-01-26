@@ -38,6 +38,7 @@ const RegistrationScreen = ({ route }) => {
       await login({
         role: resolvedRole,
         token: result?.token,
+        refreshToken: result?.refreshToken,
         email: result?.email,
       });
       console.log("Account created successfully", result);
