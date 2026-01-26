@@ -38,4 +38,24 @@ public class AuthController(IAuthService authService) : ControllerBase
             ? Ok(result.Data)
             : StatusCode(result.StatusCode ?? StatusCodes.Status400BadRequest, new { error = result.Error });
     }
+
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
+    {
+        var result = await authService.RefreshTokenAsync(request);
+        return result.Success
+            ? Ok(result.Data)
+            : StatusCode(result.StatusCode ?? StatusCodes.Status400BadRequest, new { error = result.Error });
+    }
+
+    [HttpPost("logout")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest request)
+    {
+        var result = await authService.LogoutAsync(request);
+        return result.Success
+            ? Ok(new { success = true })
+            : StatusCode(result.StatusCode ?? StatusCodes.Status400BadRequest, new { error = result.Error });
+    }
 }

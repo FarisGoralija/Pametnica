@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using backend.Models;
 using backend.Options;
@@ -45,5 +46,18 @@ public class TokenService(
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public string GenerateRefreshToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(64);
+        return Convert.ToBase64String(bytes);
+    }
+
+    public string HashRefreshToken(string refreshToken)
+    {
+        var bytes = Encoding.UTF8.GetBytes(refreshToken);
+        var hash = SHA256.HashData(bytes);
+        return Convert.ToBase64String(hash);
     }
 }

@@ -28,4 +28,8 @@ public class ApplicationUser : IdentityUser
     public decimal CurrentBalance { get; set; }
 
     public int Points { get; set; }
+
+    // Refresh token storage (hashed) for long-lived sessions.
+    public string? RefreshTokenHash { get; set; }
+    public DateTime? RefreshTokenExpiresAt { get; set; }
 }
