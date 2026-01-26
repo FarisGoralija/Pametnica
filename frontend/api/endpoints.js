@@ -3,6 +3,8 @@ const BASE_URL = "https://pametnica-production.up.railway.app/api";
 export const endpoints = {
   registerParent: `${BASE_URL}/Auth/register-parent`,
   loginParent: `${BASE_URL}/Auth/login`,
+  refreshToken: `${BASE_URL}/Auth/refresh`,
+  logout: `${BASE_URL}/Auth/logout`,
   createChild: `${BASE_URL}/Children`,
   getChildren: `${BASE_URL}/Children`,
   loginChild: `${BASE_URL}/Auth/login-child`,
@@ -10,21 +12,79 @@ export const endpoints = {
   parentShoppingLists: `${BASE_URL}/children`,
 };
 
-let unauthorizedHandler = null;
-export function setUnauthorizedHandler(handler) {
-  unauthorizedHandler = handler;
+let authHandlers = {
+  getAccessToken: null,
+  getRefreshToken: null,
+  onUpdateTokens: null,
+  onLogout: null,
+};
+
+export function setAuthHandlers(handlers) {
+  authHandlers = { ...authHandlers, ...handlers };
 }
 
 async function parseJsonSafely(response) {
-  if (response.status === 401 && unauthorizedHandler) {
-    unauthorizedHandler();
-  }
   const text = await response.text();
   if (!text) return null;
   try {
     return JSON.parse(text);
   } catch {
     return text;
+  }
+}
+
+let refreshInFlight = null;
+async function refreshAccessToken() {
+  if (refreshInFlight) return refreshInFlight;
+  const refreshToken = authHandlers.getRefreshToken?.();
+  if (!refreshToken) return null;
+
+  refreshInFlight = (async () => {
+    const response = await fetch(endpoints.refreshToken, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    const data = await parseJsonSafely(response);
+    if (!response.ok) {
+      throw new Error("Refresh token failed");
+    }
+
+    authHandlers.onUpdateTokens?.(data);
+    return data?.token || null;
+  })();
+
+  try {
+    return await refreshInFlight;
+  } finally {
+    refreshInFlight = null;
+  }
+}
+
+async function apiFetch(url, options = {}, token, retryOn401 = true) {
+  const headers = { ...(options.headers || {}) };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, { ...options, headers });
+  if (response.status !== 401 || !retryOn401) {
+    return response;
+  }
+
+  try {
+    const newToken = await refreshAccessToken();
+    if (!newToken) {
+      authHandlers.onLogout?.();
+      return response;
+    }
+
+    const retryHeaders = { ...(options.headers || {}) };
+    retryHeaders.Authorization = `Bearer ${newToken}`;
+    return await fetch(url, { ...options, headers: retryHeaders });
+  } catch {
+    authHandlers.onLogout?.();
+    return response;
   }
 }
 
@@ -78,9 +138,6 @@ export async function createChild(payload, token, parentEmail) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
 
   const body = {
     monthlyAllowance: 0,
@@ -90,11 +147,15 @@ export async function createChild(payload, token, parentEmail) {
     body.parentEmail = parentEmail;
   }
 
-  const response = await fetch(endpoints.createChild, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
+  const response = await apiFetch(
+    endpoints.createChild,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    },
+    token
+  );
 
   const data = await parseJsonSafely(response);
 
@@ -114,14 +175,15 @@ export async function getChildren(token) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
 
-  const response = await fetch(endpoints.getChildren, {
-    method: "GET",
-    headers,
-  });
+  const response = await apiFetch(
+    endpoints.getChildren,
+    {
+      method: "GET",
+      headers,
+    },
+    token
+  );
 
   const data = await parseJsonSafely(response);
 
@@ -160,21 +222,40 @@ export async function loginChild(payload) {
   return data;
 }
 
+export async function logoutSession(refreshToken) {
+  if (!refreshToken) return;
+  const response = await fetch(endpoints.logout, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!response.ok) {
+    const data = await parseJsonSafely(response);
+    const message =
+      (data && typeof data === "object" && (data.error || data.message)) ||
+      (typeof data === "string" ? data : null) ||
+      "Logout failed.";
+    const prefix = response.status ? `${response.status}: ` : "";
+    throw new Error(`${prefix}${message}`);
+  }
+}
+
 export async function updateChildAllowance(childId, monthlyAllowance, token) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.createChild}/${encodeURIComponent(childId)}/allowance`,
     {
       method: "PUT",
       headers,
       body: JSON.stringify({ monthlyAllowance }),
-    }
+    },
+    token
   );
 
   const data = await parseJsonSafely(response);
@@ -195,17 +276,15 @@ export async function deductChildPoints(childId, points, token) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.createChild}/${encodeURIComponent(childId)}/deduct-points`,
     {
       method: "POST",
       headers,
       body: JSON.stringify({ points }),
-    }
+    },
+    token
   );
 
   const data = await parseJsonSafely(response);
@@ -233,18 +312,19 @@ export async function createShoppingList({ title, listType }, token) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
 
-  const response = await fetch(endpoints.shoppingLists, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      title,
-      type: mapListTypeToBackend(listType),
-    }),
-  });
+  const response = await apiFetch(
+    endpoints.shoppingLists,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        title,
+        type: mapListTypeToBackend(listType),
+      }),
+    },
+    token
+  );
 
   const data = await parseJsonSafely(response);
 
@@ -264,15 +344,15 @@ export async function addShoppingListItem(listId, name, token) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.shoppingLists}/${encodeURIComponent(listId)}/items`,
     {
       method: "POST",
       headers,
       body: JSON.stringify({ name }),
-    }
+    },
+    token
   );
 
   const data = await parseJsonSafely(response);
@@ -291,16 +371,16 @@ export async function addShoppingListItem(listId, name, token) {
 
 export async function deleteShoppingListItem(listId, itemId, token) {
   const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.shoppingLists}/${encodeURIComponent(
       listId
     )}/items/${encodeURIComponent(itemId)}`,
     {
       method: "DELETE",
       headers,
-    }
+    },
+    token
   );
 
   if (!response.ok) {
@@ -316,14 +396,14 @@ export async function deleteShoppingListItem(listId, itemId, token) {
 
 export async function submitShoppingList(listId, token) {
   const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.shoppingLists}/${encodeURIComponent(listId)}/submit`,
     {
       method: "POST",
       headers,
-    }
+    },
+    token
   );
 
   const data = await parseJsonSafely(response);
@@ -342,14 +422,14 @@ export async function submitShoppingList(listId, token) {
 
 export async function deleteShoppingList(listId, token) {
   const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.shoppingLists}/${encodeURIComponent(listId)}`,
     {
       method: "DELETE",
       headers,
-    }
+    },
+    token
   );
 
   if (!response.ok) {
@@ -365,12 +445,15 @@ export async function deleteShoppingList(listId, token) {
 
 export async function getChildActiveLists(token) {
   const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${endpoints.shoppingLists}/active`, {
-    method: "GET",
-    headers,
-  });
+  const response = await apiFetch(
+    `${endpoints.shoppingLists}/active`,
+    {
+      method: "GET",
+      headers,
+    },
+    token
+  );
 
   const data = await parseJsonSafely(response);
   if (!response.ok) {
@@ -388,12 +471,15 @@ export async function getChildActiveLists(token) {
 // ME PROFILE
 export async function getMe(token) {
   const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${BASE_URL}/Me`, {
-    method: "GET",
-    headers,
-  });
+  const response = await apiFetch(
+    `${BASE_URL}/Me`,
+    {
+      method: "GET",
+      headers,
+    },
+    token
+  );
 
   const data = await parseJsonSafely(response);
   if (!response.ok) {
@@ -412,13 +498,16 @@ export async function updateMe(payload, token) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${BASE_URL}/Me`, {
-    method: "PUT",
-    headers,
-    body: JSON.stringify(payload),
-  });
+  const response = await apiFetch(
+    `${BASE_URL}/Me`,
+    {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(payload),
+    },
+    token
+  );
 
   const data = await parseJsonSafely(response);
   if (!response.ok) {
@@ -437,15 +526,15 @@ export async function updateShoppingListTitle(listId, title, token) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.shoppingLists}/${encodeURIComponent(listId)}/title`,
     {
       method: "PUT",
       headers,
       body: JSON.stringify({ title }),
-    }
+    },
+    token
   );
 
   const data = await parseJsonSafely(response);
@@ -463,12 +552,15 @@ export async function updateShoppingListTitle(listId, title, token) {
 
 export async function getChildPendingLists(token) {
   const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${endpoints.shoppingLists}/pending`, {
-    method: "GET",
-    headers,
-  });
+  const response = await apiFetch(
+    `${endpoints.shoppingLists}/pending`,
+    {
+      method: "GET",
+      headers,
+    },
+    token
+  );
 
   const data = await parseJsonSafely(response);
   if (!response.ok) {
@@ -485,16 +577,16 @@ export async function getChildPendingLists(token) {
 
 export async function getParentActiveLists(parentToken, childId) {
   const headers = {};
-  if (parentToken) headers.Authorization = `Bearer ${parentToken}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.parentShoppingLists}/${encodeURIComponent(
       childId
     )}/shopping-lists/active`,
     {
       method: "GET",
       headers,
-    }
+    },
+    parentToken
   );
 
   const data = await parseJsonSafely(response);
@@ -512,16 +604,16 @@ export async function getParentActiveLists(parentToken, childId) {
 
 export async function getParentPendingLists(parentToken, childId) {
   const headers = {};
-  if (parentToken) headers.Authorization = `Bearer ${parentToken}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.parentShoppingLists}/${encodeURIComponent(
       childId
     )}/shopping-lists/pending`,
     {
       method: "GET",
       headers,
-    }
+    },
+    parentToken
   );
 
   const data = await parseJsonSafely(response);
@@ -539,14 +631,14 @@ export async function getParentPendingLists(parentToken, childId) {
 
 export async function approveShoppingList(listId, parentToken) {
   const headers = {};
-  if (parentToken) headers.Authorization = `Bearer ${parentToken}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.shoppingLists}/${encodeURIComponent(listId)}/approve`,
     {
       method: "PUT",
       headers,
-    }
+    },
+    parentToken
   );
 
   const data = await parseJsonSafely(response);
@@ -564,14 +656,14 @@ export async function approveShoppingList(listId, parentToken) {
 
 export async function rejectShoppingList(listId, parentToken) {
   const headers = {};
-  if (parentToken) headers.Authorization = `Bearer ${parentToken}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.shoppingLists}/${encodeURIComponent(listId)}/reject`,
     {
       method: "PUT",
       headers,
-    }
+    },
+    parentToken
   );
 
   const data = await parseJsonSafely(response);
@@ -597,17 +689,20 @@ export async function updateShoppingListItem(
   const headers = {
     "Content-Type": "application/json",
   };
-  if (parentToken) headers.Authorization = `Bearer ${parentToken}`;
 
   const url = `${endpoints.shoppingLists}/${encodeURIComponent(
     listId
   )}/items/${encodeURIComponent(itemId)}`;
 
-  const response = await fetch(url, {
-    method: remove ? "DELETE" : "PUT",
-    headers,
-    body: remove ? undefined : JSON.stringify({ name }),
-  });
+  const response = await apiFetch(
+    url,
+    {
+      method: remove ? "DELETE" : "PUT",
+      headers,
+      body: remove ? undefined : JSON.stringify({ name }),
+    },
+    parentToken
+  );
 
   const data = await parseJsonSafely(response);
   if (!response.ok) {
@@ -643,9 +738,8 @@ export async function verifyShoppingItem(listId, itemId, imageBase64, token) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.shoppingLists}/${encodeURIComponent(
       listId
     )}/items/${encodeURIComponent(itemId)}/verify`,
@@ -653,7 +747,8 @@ export async function verifyShoppingItem(listId, itemId, imageBase64, token) {
       method: "POST",
       headers,
       body: JSON.stringify({ imageBase64 }),
-    }
+    },
+    token
   );
 
   const data = await parseJsonSafely(response);
@@ -683,9 +778,8 @@ export async function completeShoppingItem(listId, itemId, price, token) {
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(
+  const response = await apiFetch(
     `${endpoints.shoppingLists}/${encodeURIComponent(
       listId
     )}/items/${encodeURIComponent(itemId)}/complete`,
@@ -693,7 +787,8 @@ export async function completeShoppingItem(listId, itemId, price, token) {
       method: "POST",
       headers,
       body: JSON.stringify({ price }),
-    }
+    },
+    token
   );
 
   const data = await parseJsonSafely(response);
