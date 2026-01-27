@@ -16,7 +16,7 @@ export default function ChildTabNavigator() {
 
         tabBarStyle: {
           position: "absolute",
-          bottom: 24,
+          bottom: 48,
           marginHorizontal: "5%",
           height: 78,
           paddingBottom: 10,

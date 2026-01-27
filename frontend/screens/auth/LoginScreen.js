@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 24,
-    marginBottom: 12,
+    marginBottom: 35,
   },
 
   footerText: {
