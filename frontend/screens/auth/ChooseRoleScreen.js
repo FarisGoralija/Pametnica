@@ -16,7 +16,7 @@ const ChooseRoleScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" />
 
       <HeaderComponent
-        title="Odaberite način prijave"
+        title="Odaberite profil korisnika"
         subtitle="Nastavite kao senior ili kao junior."
       />
 
